@@ -3,3 +3,7 @@
 build/*
 dist/*
 
+/src/java/probes/xcf/nbproject/private/
+/src/java/probes/xcf/build/
+/src/java/probes/xcf/dist/
+
