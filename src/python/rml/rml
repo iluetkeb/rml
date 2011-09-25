@@ -1,0 +1,45 @@
+#! /usr/bin/python
+
+import sys, getopt
+
+def usage(config=None):
+	print """\
+rml -- 	RobotMetaLogger, a framework for logging and working 
+	with robot execution data.
+
+Usage: rml <command> [args]
+	
+Command is one of:
+	help	Display this help.
+	init	Initialize a new log destination directory.
+	run	Record a new run of logs, with all the configured sources.
+	show	Display the history of runs.
+
+To stop logging, press "Ctrl-C".
+"""
+
+def run(config):
+	print "run: %s" % config
+
+def init(config):
+	print "init: %s" % config
+
+def show(config):
+	print "show: %s" % config
+
+
+if __name__ == '__main__':
+	cmds = dict(help=usage, init=init, run=run, show=show)
+	config = dict(verbose=False)
+
+	try:
+		opts, args = getopt.gnu_getopt(sys.argv[1:], "hv", ["help", "version"])
+		if len(opts) == 0 and len(args) == 0:
+			usage()		
+		else:
+			if cmds.has_key(args[0]):
+				cmds[args[0]](config)
+				
+	except getopt.GetoptError:
+		usage()
+		sys.exit(2)
