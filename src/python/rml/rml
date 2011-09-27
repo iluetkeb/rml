@@ -12,34 +12,71 @@ Usage: rml <command> [args]
 Command is one of:
 	help	Display this help.
 	init	Initialize a new log destination directory.
+	add 	Add a new log source.
 	run	Record a new run of logs, with all the configured sources.
 	show	Display the history of runs.
+
+Run "rml help <cmd>" to get more info, if available.
 
 To stop logging, press "Ctrl-C".
 """
 
-def run(config):
-	print "run: %s" % config
+import launch
+import session
 
-def init(config):
-	print "init: %s" % config
+class RML:
+	def __init__(self, run_config):
+		self.run_config = run_config
+		self.rml = None
 
-def show(config):
-	print "show: %s" % config
+	def cfg(self):
+		'''Attempt initializing configuration when needed.'''
+		if not self.rml:
+			self.rml = session.RMLDir()
+		return self.rml.get_config()
+
+	def run(self):
+		'''run -- Start logging.'''
+		self.cfg()
+		probes = launch.load_probes(self.rml.get_environment(), self.cfg())
+		print probes
+		if not probes or len(probes) == 0:
+			print "No probes configured, terminating."
+			return
+		launch.run(probes, self.cfg())
+
+	def add(self):
+		'''add <name> <type> -- Add new source of type 'type' and remember it with the given name.'''
+		pass
+
+	def init(self):
+		self.rml = session.initialize()
+
+	def show(self):
+		print "show: %s" % self.config
 
 
 if __name__ == '__main__':
-	cmds = dict(help=usage, init=init, run=run, show=show)
-	config = dict(verbose=False)
+	rml = RML(dict(verbose=False))
 
 	try:
 		opts, args = getopt.gnu_getopt(sys.argv[1:], "hv", ["help", "version"])
 		if len(opts) == 0 and len(args) == 0:
 			usage()		
 		else:
-			if cmds.has_key(args[0]):
-				cmds[args[0]](config)
-				
+			if args[0] == "help":
+				if len(args) > 1 and hasattr(rml, args[1]):
+					doc = getattr(rml, args[1]).__doc__
+					if not doc:
+						print "No more help available for command '%s'." % args[1]
+					else:
+						print doc
+				else:
+					usage()
+			elif hasattr(rml, args[0]):
+				getattr(rml, args[0])()
+			else:
+				print "Command '%s' unknown." % args[0]
 	except getopt.GetoptError:
 		usage()
 		sys.exit(2)
