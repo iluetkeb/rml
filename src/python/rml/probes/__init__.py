@@ -40,7 +40,9 @@ class ProbeConfigurationException(Exception):
 	def __str__(self):
 		return repr(self.msg)
 
-def get_probes(env, cfg):
-	from rml.probes.xcf.event import XCFProbe
+from rml.probes.xcf.event import XCFProbe
+from rml.probes.opencv.camera import OpenCVProbe
+PROBES = dict(event=dict(xcf=XCFProbe),camera=dict(opencv=OpenCVProbe))
 
-	return [XCFProbe(env, cfg)]
+def get_probes(env, cfg):
+	return [XCFProbe(env, cfg), OpenCVProbe(env, cfg)]
