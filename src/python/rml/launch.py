@@ -25,11 +25,25 @@ def oh(d, vardict):
 				raise ConfigurationException("Undefined variable used: %s" % e)
 	return d
 
-if __name__ == '__main__':
-	if len(sys.argv) < 2:
-		print "Syntax: %s <config-file>" % sys.argv[0]
-		sys.exit(-1)
-	
+import probes
+
+def load_probes(env, config):
+	ps = []
+	avail = probes.PROBES
+	srcs = config['sources']
+	for key, value in srcs.items():
+		ptype = key
+		pimpl = srcs[key]['type']
+		if avail.has_key(ptype):
+			if avail[ptype].has_key(pimpl):
+				ps.append(avail[ptype][pimpl](env, value))
+			else:
+				raise rml.probes.ProbeConfigurationException("Implementation '%s' for log type '%s' not found" % (pimpl, ptype))
+		else:
+			raise rml.probes.ProbeConfigurationException("No probes found for log type '%s'" % ptype)
+	return ps
+
+def load_config(args):
 	vardict = {'cwd': os.getcwd(), 'rml.dir': env.get_basepath(), 
 		   'rml.javadir': env.get_javabase(),
 		   'rml.pythondir': env.get_pythonbase() }	
@@ -41,10 +55,11 @@ if __name__ == '__main__':
 		print "Could not load configuration file {0}: {1}".format(sys.argv[1], e)
 		sys.exit(-1)
 	env.load(config)
+	return (env, config)
 
-	probes = get_probes(env, config['rml_cfg'])
+def run(probes, config):
 	try:
-		print "Starting Probes"
+		print "Starting Probes: %s" % probes
 		for p in probes:
 			p.start()
 
@@ -64,3 +79,12 @@ if __name__ == '__main__':
 				p.stop()
 			except:
 				pass
+
+if __name__ == '__main__':
+	if len(sys.argv) < 2:
+		print "Syntax: %s <config-file>" % sys.argv[0]
+		sys.exit(-1)
+	
+	env, config = load_config(sys.argv[1:])
+	probes = load_probes(config['rml_cfg'])
+	run(probes, config)
