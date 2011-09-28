@@ -8,3 +8,8 @@ dist/*
 /src/java/probes/xcf/build/
 /src/java/probes/xcf/dist/
 
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
