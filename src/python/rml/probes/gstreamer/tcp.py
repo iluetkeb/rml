@@ -31,16 +31,25 @@ class TCPProbe(Probe):
 		self.pipeline.add(src, wavenc, sink)
 		gst.element_link_many(src, wavenc, sink)
 
+		self.bus = self.pipeline.get_bus()
+		self.bus.add_signal_watch()
+		self.bus.connect("message", self.on_message)
+
+	def on_message(self, bus, message):
+		print "Message: ", message.type
+
 	def do_start(self):
 		print "Starting tcp receiption pipeline"
-		self.pipeline.set_state(gst.STATE_PLAYING)
-		print self.pipeline.get_state()
+		ret = self.pipeline.set_state(gst.STATE_PLAYING)
+		print self.pipeline.get_state()#, dir(self.pipeline)
+		if ret == gst.STATE_CHANGE_FAILURE:
+			raise ProbeConfigurationException("Could not start gstreamer-tcp probe -- try again with GST_DEBUG=2 to get an error message.")
 	
 	def do_stop(self):
 		self.player.set_state(gst.STATE_NULL)
 
 	def is_alive(self):
-		return Probe.is_alive(self) and (gst.STATE_PLAYING in self.pipeline.get_state())
+		return Probe.is_alive(self) and self.pipeline.get_state()[1] == gst.STATE_PLAYING
 
 	def __repr__(self):
 		return repr(self.cfg)
