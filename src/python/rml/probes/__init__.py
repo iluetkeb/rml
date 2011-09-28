@@ -42,7 +42,8 @@ class ProbeConfigurationException(Exception):
 
 from rml.probes.xcf.event import XCFProbe
 from rml.probes.opencv.camera import OpenCVProbe
-PROBES = dict(event=dict(xcf=XCFProbe),camera=dict(opencv=OpenCVProbe))
+from rml.probes.gstreamer.tcp import TCPProbe
+PROBES = dict(event=dict(xcf=XCFProbe),camera=dict(opencv=OpenCVProbe),audio=dict(gstreamer=TCPProbe))
 
 def get_probes(env, cfg):
 	return [XCFProbe(env, cfg), OpenCVProbe(env, cfg)]
