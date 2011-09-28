@@ -2,6 +2,7 @@
 *.class
 build/*
 dist/*
+*egg-info
 
 /src/java/probes/xcf/nbproject/private/
 /src/java/probes/xcf/build/

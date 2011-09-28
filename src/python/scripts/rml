@@ -21,8 +21,8 @@ Run "rml help <cmd>" to get more info, if available.
 To stop logging, press "Ctrl-C".
 """
 
-import rml.launch as launch
-import rml.session as session
+import launch
+import session
 
 class RML:
 	def __init__(self, run_config):
