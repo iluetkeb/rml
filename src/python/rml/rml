@@ -1,6 +1,16 @@
 #! /usr/bin/python
 
-import sys, getopt
+import sys, os.path
+try:
+	import rml_config
+	if not rml_config.is_installed():
+		path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+		print "path", path
+		sys.path.append(path)
+except ImportError:
+	pass
+
+import getopt
 
 def usage(config=None):
 	print """\
