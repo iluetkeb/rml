@@ -8,7 +8,7 @@ all:
 clean:
 	ant clean
 
-install:
+install: all
 	mkdir -p @JARDIR@
 	cp dist/EventDataLogger.jar @JARDIR@
 
