@@ -16,6 +16,8 @@ class XCFProbe(Probe):
 		cmd = ["java", "-cp", "%s:%s/EventDataLogger.jar" % (self.env.get_classpath(), self.env.get_javabase()), "de.unibi.agai.events.log.LogAll", self.logfilename ]
 		print cmd
 		self.proc = subprocess.Popen(cmd, bufsize=1)
+		if not self.proc:
+			raise ProbeConfigurationException("Could not start xcf logging process")
 		
 	def do_stop(self):
 		self.proc.terminate()
