@@ -1,0 +1,25 @@
+{"rml_cfg": {
+	"probes": {
+		"xcf-events": {
+			"class": "event",
+			"type": "xcf",
+			"outputfile": "xcflog.xml"
+		},
+		"room_mike": {
+			"class": "audio",
+			"type": "gstreamer-tcp",
+			"host": "localhost",
+			"port": 4953,
+			"outputfile": "capture.wav"
+		},
+		"wizard-cam": {
+			"class": "camera",
+			"type": "opencv",
+			"camera_num": 0,
+			"outputfile": "camera.avi",
+			"display": true
+		}
+	}, 
+	"state": {"last_session": 0, "last_run": 0}
+	}
+}
