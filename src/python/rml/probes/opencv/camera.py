@@ -26,6 +26,8 @@ class OpenCVProbe(Probe):
 	def do_start(self):
 		self.capture = cv.CaptureFromCAM(self.cfg['camera_num'])
 		fps = cv.GetCaptureProperty(self.capture, cv.CV_CAP_PROP_FPS)
+		if fps == -1:
+			raise ProbeConfigurationException("Cannot determine fps -- is a camera attached?")
 		width = int(cv.GetCaptureProperty(self.capture, cv.CV_CAP_PROP_FRAME_WIDTH))
 		height = int(cv.GetCaptureProperty(self.capture, cv.CV_CAP_PROP_FRAME_HEIGHT))
 		frame_size = (width, height)
