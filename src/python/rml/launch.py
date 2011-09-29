@@ -5,6 +5,10 @@ import sys, json, os, time, types, string
 
 from probes import get_probes
 
+__KEY_PROBES = 'probes'
+__KEY_CLASS = 'class'
+__KEY_TYPE = 'type'
+
 formatter = string.Formatter()
 
 class ConfigurationException(Exception):
@@ -30,10 +34,10 @@ import probes
 def load_probes(env, config):
 	ps = []
 	avail = probes.PROBES
-	srcs = config['sources']
+	srcs = config[__KEY_PROBES]
 	for key, value in srcs.items():
-		ptype = key
-		pimpl = srcs[key]['type']
+		ptype = srcs[key][__KEY_CLASS]
+		pimpl = srcs[key][__KEY_TYPE]
 		if avail.has_key(ptype):
 			if avail[ptype].has_key(pimpl):
 				ps.append(avail[ptype][pimpl](env, value))
