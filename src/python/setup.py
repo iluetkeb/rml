@@ -2,9 +2,8 @@ from setuptools import setup, find_packages
 setup(
 	name = "RobotMetaLogger",
 	version = "0.1",
-	packages = find_packages("src/python"),
-	scripts = ["src/python/rml/rml"],
-	package_dir = {'': 'src/python'},
+	packages = find_packages(),
+	scripts = ["rml/rml"],
 
 	extras_require = {
 		'gstreamer': 'gst-python>=0.10',

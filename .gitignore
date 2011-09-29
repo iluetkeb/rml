@@ -8,8 +8,17 @@ dist/*
 /src/java/probes/xcf/build/
 /src/java/probes/xcf/dist/
 
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
+*.in
 Makefile
 
+aclocal.m4
+autom4te.cache/
+bootstrap.sh
+config.log
+config.status
+config/
+configure
+ltmain.sh
+
+src/python/build/
+src/python/dist/

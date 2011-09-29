@@ -13,7 +13,7 @@ class XCFProbe(Probe):
 		self.logfilename = cfg['outputfile']
 
 	def do_start(self):
-		cmd = ["java", "-cp", "%s:%s/probes/xcf/dist/EventDataLogger.jar" % (self.env.get_classpath(), self.env.get_javabase()), "de.unibi.agai.events.log.LogAll", self.logfilename ]
+		cmd = ["java", "-cp", "%s:%s/EventDataLogger.jar" % (self.env.get_classpath(), self.env.get_javabase()), "de.unibi.agai.events.log.LogAll", self.logfilename ]
 		print cmd
 		self.proc = subprocess.Popen(cmd, bufsize=1)
 		

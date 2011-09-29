@@ -3,6 +3,7 @@ from glob import glob
 from os.path import dirname, normpath, abspath
 from os.path import join as dirjoin
 import os
+import rml_config
 
 class ConfigurationException(Exception):
 	def __init__(self, value):
@@ -20,8 +21,9 @@ class Environment:
 	the base path of the RML installation, {rml.javadir} for the java base path,
 	and {rml.pythondir} for the Python basedir.
 	'''
-	_basepath = normpath(dirjoin(abspath(dirname(__file__)), '..', '..', '..'))
-	javapath = glob('libs/*.jar') + glob(dirjoin(_basepath, 'libs', '*.jar'))
+	_pythonroot = rml_config.get_pythonroot()
+	_javaroot = rml_config.get_javaroot()
+	javapath = glob('libs/*.jar') + glob(dirjoin(rml_config.get_jardepdir(), '*.jar'))
 	
 	def __init__(self):
 		sys.path.append(normpath(dirjoin(dirname(__file__), '..')))
@@ -38,10 +40,10 @@ class Environment:
 		return ':'.join(self.javapath + extra)
 
 	def get_javabase(self):
-		return dirjoin(self._basepath, 'src', 'java')
+		return rml_config.get_javaroot()
 
 	def get_pythonbase(self):
-		return dirjoin(self._basepath, 'src', 'python')
+		return rml_config.get_pythonroot()
 
 	def load(self, config, cwd=None):
 		# first-step check, to see whether we're reading something that was actually
