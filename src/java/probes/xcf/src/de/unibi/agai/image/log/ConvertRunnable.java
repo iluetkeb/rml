@@ -8,10 +8,13 @@ import de.unibi.agai.cis.ImageDecoder;
 import de.unibi.agai.cis.ImageProvider;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 import net.sf.xcf.event.PublishEvent;
 import nu.xom.Document;
 import nu.xom.Nodes;
@@ -25,10 +28,18 @@ public class ConvertRunnable implements Runnable {
     
     private final String baseName;
     private final PublishEvent imageEvent;
-        
-    public ConvertRunnable(String baseName, PublishEvent imageEvent) {
+    private final long receiveTime = System.currentTimeMillis();
+    private final ImageWriter writer;
+    private final ImageWriteParam iwp;
+    
+    public ConvertRunnable(String baseName, PublishEvent imageEvent, float quality) {
         this.baseName = baseName;
         this.imageEvent = imageEvent;
+        writer = ImageIO.getImageWritersByFormatName(
+                "jpeg").next();
+        iwp = writer.getDefaultWriteParam();
+        iwp.setCompressionQuality(quality);
+        
     }
     
     @Override
@@ -39,7 +50,9 @@ public class ConvertRunnable implements Runnable {
             final ImageProvider spec = decoder.decode(imageEvent.getData());
             final BufferedImage img = spec.createBufferedImage(null);
             final File imageFile = new File(baseName + "-" + timestamp + ".jpg");
-            ImageIO.write(img, "JPEG", imageFile);
+            final ImageOutputStream ios = ImageIO.createImageOutputStream(imageFile);
+            writer.setOutput(ios);
+            writer.write(null, new IIOImage(img, null, null), iwp);
             logger.log(Level.FINE, "Wrote image to {0}", imageFile);
         } catch (Exception ex) {
             Logger.getLogger(ConvertRunnable.class.getName()).
@@ -50,7 +63,7 @@ public class ConvertRunnable implements Runnable {
      private long grabTime(Document document) {
         Nodes createdNodes = document.query("//CREATED/@value");
         if (createdNodes.size() < 1) {
-            return System.currentTimeMillis();
+            return receiveTime;
         }
         return Long.parseLong(createdNodes.get(0).getValue());
     }
