@@ -20,7 +20,7 @@ class XCFImageProbe(Probe):
 	def do_start(self):
 		if not os.path.exists(self.dirname):
 			os.makedirs(self.dirname)
-		cmd = ["java", "-cp", "%s:%s/EventDataLogger.jar" % (self.env.get_classpath(), self.env.get_javabase()), "de.unibi.agai.image.log.SingleImageLogger", self.publisher, "%s/image" % self.dirname ]
+		cmd = ["java", "-cp", "%s:%s/EventDataLogger.jar" % (self.env.get_classpath(), self.env.get_javabase()), "de.unibi.agai.image.log.SingleImageLogger", self.publisher, "%s/image" % self.dirname, "0.9" ]
 		print cmd
 		self.proc = subprocess.Popen(cmd, bufsize=1)
 		if not self.proc:
