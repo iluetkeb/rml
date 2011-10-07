@@ -38,7 +38,7 @@ public class ConvertRunnable implements Runnable {
         writer = ImageIO.getImageWritersByFormatName(
                 "jpeg").next();
         iwp = writer.getDefaultWriteParam();
-        iwp.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+	iwp.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
         iwp.setCompressionQuality(quality);
         
     }
