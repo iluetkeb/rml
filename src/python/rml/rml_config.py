@@ -4,10 +4,10 @@
 # WARNING: ONLY EDIT THE ".in"-VERSION OF THIS FILE! THE
 # .py-VERSION IS AUTO-GENERATED!
 
-TOP_SRCDIR="/homes/iluetkeb/Source/rml"
-INSTALL_DESTINATION="/vol/scratch/iluetkeb/rmlpref/lib/python2.6/site-packages/"
-JAVADIR="/vol/scratch/iluetkeb/rmlpref/share/rml"
-JARDEPDIR="/vol/scratch/iluetkeb/rmlpref/share/rml/libs/"
+TOP_SRCDIR="/home/sozirob/rml"
+INSTALL_DESTINATION="/vol/airobots/releases/sports_companion/lib/python2.6/site-packages/"
+JAVADIR="/vol/airobots/releases/sports_companion/share/rml"
+JARDEPDIR="/vol/airobots/releases/sports_companion/share/rml/libs/"
 
 def is_installed():
 	return __file__.find(INSTALL_DESTINATION) != -1

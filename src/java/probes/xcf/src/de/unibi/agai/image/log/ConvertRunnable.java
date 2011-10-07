@@ -38,6 +38,7 @@ public class ConvertRunnable implements Runnable {
         writer = ImageIO.getImageWritersByFormatName(
                 "jpeg").next();
         iwp = writer.getDefaultWriteParam();
+	iwp.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
         iwp.setCompressionQuality(quality);
         
     }
@@ -53,6 +54,7 @@ public class ConvertRunnable implements Runnable {
             final ImageOutputStream ios = ImageIO.createImageOutputStream(imageFile);
             writer.setOutput(ios);
             writer.write(null, new IIOImage(img, null, null), iwp);
+	    ios.close();
             logger.log(Level.FINE, "Wrote image to {0}", imageFile);
         } catch (Exception ex) {
             Logger.getLogger(ConvertRunnable.class.getName()).
