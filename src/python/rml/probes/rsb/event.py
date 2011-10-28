@@ -8,16 +8,14 @@ class RSBProbe(Probe):
 
 	def __init__(self, env, cfg):
 		Probe.__init__(self)
-		for key in self.REQ_CONFIG:
-			if not cfg.has_key(key):
-				raise ProbeConfigurationException("Required configuration item '%s' missing in %s" % (key, repr(cfg)))
+		cfg.check_keys(self.REQ_CONFIG)
 
 		self.env = env
 		self.cfg = cfg
 		self.proc = None
-		self.logfilename = cfg['outputfile']
-		self.spreadhost = cfg['spreadhost']
-		self.spreadport = cfg['spreadport']
+		self.logfilename = cfg.get_outputlocation()
+		self.spreadhost = cfg.get('spreadhost')
+		self.spreadport = cfg.get('spreadport', 4803)
 
 	def do_start(self):
 		cmd = ["bag-record", "-o", self.logfilename, "spread://%s:%d" % (self.spreadhost, self.spreadport) ]

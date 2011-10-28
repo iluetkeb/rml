@@ -60,7 +60,7 @@ class ProbeConfiguration:
 	Configuration class for probes.
 
 	>>> c = ProbeConfiguration(None, {'class': 'event', 'type': 'test', 'location': 'foo.xml', 'option': 'arg'})
-	>>> c.check_keys('option')
+	>>> c.check_keys(['location', 'option'])
 	>>> c.get_outputlocation()
 	'foo.xml'
 	>>> c.get_category()
@@ -78,9 +78,9 @@ class ProbeConfiguration:
 		self.probe_cfg = probe_cfg
 		self.probe_cat = probe_cfg[self.__KEY_CAT]
 		self.probe_type = probe_cfg[self.__KEY_TYPE]
-		self.check_keys(self.__KEY_LOC)
+		self.check_keys([self.__KEY_LOC])
 		
-	def check_keys(self, *keys):
+	def check_keys(self, keys):
 		missing = []
 		for key in keys:
 			if not self.probe_cfg.has_key(key):

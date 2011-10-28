@@ -5,7 +5,7 @@ setup(
 	packages = find_packages(),
 	scripts = ["bin/rml"],
 
-	test_suite="test"
+	test_suite="test",
 
 	extras_require = {
 		'gstreamer': 'gst-python>=0.10',
