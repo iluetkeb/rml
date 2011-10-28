@@ -3,7 +3,9 @@ setup(
 	name = "RobotMetaLogger",
 	version = "0.1",
 	packages = find_packages(),
-	scripts = ["rml/rml"],
+	scripts = ["bin/rml"],
+
+	test_suite="test"
 
 	extras_require = {
 		'gstreamer': 'gst-python>=0.10',

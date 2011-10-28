@@ -1,6 +1,6 @@
-import os, json
+import os
 
-import environment
+import config
 
 class RMLStateException(Exception):
 	def __init__(self, value):
@@ -11,15 +11,13 @@ class RMLStateException(Exception):
 		return repr(value)
 
 class RMLDir:
-	INITIAL_CONFIG = dict(rml_cfg=dict(sources={}, environment={}, state=dict(last_session=0, last_run=0)))
 	CONFIG_NAME = "config.json"
 	DIR_NAME = ".rml"
 	def __init__(self,target=os.getcwd()):
 		self.rmldir = os.path.join(target, RMLDir.DIR_NAME)
-		base_config = json.load(file(os.path.join(self.rmldir, RMLDir.CONFIG_NAME)))
-		self.config = base_config['rml_cfg']
-		self.env = environment.Instance
-		self.env.load(base_config)
+		cfg_filename = file(os.path.join(self.rmldir, RMLDir.CONFIG_NAME))
+		self.config = config(cfg_filename)
+		self.env = self.config.get_env()
 
 	def get_config(self):
 		return self.config
@@ -37,8 +35,8 @@ def initialize(target=os.getcwd()):
 		if not os.path.isdir(rmldir):
 			os.makedirs(rmldir)
 		print config_path
-		config = file(config_path, "w")
-		json.dump(RMLDir.INITIAL_CONFIG, config)
-		config.close()
+		cfg_file = file(config_path, "w")
+		config.dump_initial_config(cfg_file)
+		cfg_file.close()
 		return RMLDir(target)
 	

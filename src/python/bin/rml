@@ -1,6 +1,16 @@
 #! /usr/bin/python
 
-import sys, getopt
+import sys, os.path
+try:
+	import rml.rml_config
+	if not rml.rml_config.is_installed():
+		path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+		print "path", path
+		sys.path.append(path)
+except ImportError:
+	pass
+
+import getopt
 
 def usage(config=None):
 	print """\
@@ -21,8 +31,9 @@ Run "rml help <cmd>" to get more info, if available.
 To stop logging, press "Ctrl-C".
 """
 
-import launch
-import session
+import rml.config, rml.probes
+import rml.launch as launch
+import rml.session as session
 
 class RML:
 	def __init__(self, run_config):
@@ -38,12 +49,15 @@ class RML:
 	def run(self):
 		'''run -- Start logging.'''
 		self.cfg()
-		probes = launch.load_probes(self.rml.get_environment(), self.cfg())
-		print probes
-		if not probes or len(probes) == 0:
+		ps = []
+		for cfg in rml.config.get_probe_cfgs():
+			ps.append(rml.probes.create(cfg, env, cfg))
+	
+		print ps
+		if not ps or len(ps) == 0:
 			print "No probes configured, terminating."
 			return
-		launch.run(probes, self.cfg())
+		launch.run(ps)
 
 	def add(self):
 		'''add <name> <type> -- Add new source of type 'type' and remember it with the given name.'''

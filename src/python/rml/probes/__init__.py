@@ -45,7 +45,22 @@ from rml.probes.xcf.camera import XCFImageProbe
 from rml.probes.rsb.event import RSBProbe
 from rml.probes.opencv.camera import OpenCVProbe
 from rml.probes.gstreamer.tcp import TCPProbe
-PROBES = dict(event=dict(xcf=XCFProbe,rsb=RSBProbe),camera=dict(opencv=OpenCVProbe,xcf=XCFImageProbe),audio={"gstreamer-tcp":TCPProbe})
+
+PROBES = dict(
+	event=dict(xcf=XCFProbe,rsb=RSBProbe),
+	camera=dict(
+		opencv=OpenCVProbe,
+		xcf=XCFImageProbe),
+	audio={"gstreamer-tcp": TCPProbe}
+	)
+
+def create(cfg, *args):
+	'''Get the probe class instance for the given category and type, passing the left-over arguments'''
+	try:
+		return PROBES[cfg.get_category()][cfg.get_type()](args)
+	except KeyError:
+		raise ProbeConfigurationException("No probe category '%s', type '%s' known" % cfg.get_category(),
+			cfg.get_type())
 
 def get_probes(env, cfg):
 	return [XCFProbe(env, cfg), OpenCVProbe(env, cfg)]
