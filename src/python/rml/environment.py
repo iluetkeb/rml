@@ -3,7 +3,7 @@ from glob import glob
 from os.path import dirname, normpath, abspath
 from os.path import join as dirjoin
 import os
-import rml_config
+import rml.rml_config as rml_config
 
 class ConfigurationException(Exception):
 	def __init__(self, value):
