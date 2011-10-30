@@ -10,13 +10,27 @@ class RMLStateException(Exception):
 	def __str__(self):
 		return repr(value)
 
+def cfg_defaults(cfg_dir=None, cfg_filename=None):
+	if not cfg_dir:
+		cfg_dir = os.path.join(os.getcwd(), RMLDir.DEF_DIR_NAME)
+	if not cfg_filename:
+		cfg_filename = os.path.join(cfg_dir, RMLDir.DEF_CONFIG_NAME)
+	return (cfg_dir, cfg_filename)
+	
+
 class RMLDir:
-	CONFIG_NAME = "config.json"
-	DIR_NAME = ".rml"
-	def __init__(self,target=os.getcwd()):
-		self.rmldir = os.path.join(target, RMLDir.DIR_NAME)
-		cfg_filename = file(os.path.join(self.rmldir, RMLDir.CONFIG_NAME))
-		self.config = config(cfg_filename)
+	DEF_CONFIG_NAME = "config.json"
+	DEF_DIR_NAME = ".rml"
+
+	def __init__(self, cfg_dir=None, cfg_filename=None):
+		'''Initialize RML. By default, loads configuration from .rml/config.json.'''
+		cfg_dir, cfg_filename = cfg_defaults(cfg_dir, cfg_filename)		
+		self.rmldir = cfg_dir
+		cfg_file = file(cfg_filename)
+		try:
+			self.config = config.Configuration(cfg_file)
+		finally:
+			cfg_file.close()
 		self.env = self.config.get_env()
 
 	def get_config(self):
@@ -25,18 +39,21 @@ class RMLDir:
 	def get_environment(self):
 		return self.env
 
-def initialize(target=os.getcwd()):
+def initialize(cfg_dir=None, cfg_filename=None):
 	"""If not yet initialized, initialize RMLDir and return it."""
-	rmldir = os.path.join(target, RMLDir.DIR_NAME)
-	config_path = os.path.join(rmldir, RMLDir.CONFIG_NAME) 
-	if os.path.isdir(rmldir) and os.path.exists(config_path):
-		return RMLDir(target)
+	cfg_dir, cfg_filename = cfg_defaults(cfg_dir, cfg_filename)
+	if os.path.isdir(cfg_dir) and os.path.exists(cfg_filename):
+		raise config.ConfigurationException("Config file '%s/%s' already exists." % (
+			cfg_dir, cfg_filename ))
 	else:
-		if not os.path.isdir(rmldir):
-			os.makedirs(rmldir)
-		print config_path
-		cfg_file = file(config_path, "w")
-		config.dump_initial_config(cfg_file)
-		cfg_file.close()
-		return RMLDir(target)
+		if not os.path.isdir(cfg_dir):
+			os.makedirs(cfg_dir)
+		print cfg_dir, cfg_filename
+		cfg_file = file(cfg_filename, "w")
+		try:
+			config.dump_initial_config_string(cfg_file)
+		finally:	
+			cfg_file.close()
+	
+		return RMLDir(cfg_dir, cfg_filename)
 	

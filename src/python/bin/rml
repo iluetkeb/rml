@@ -12,12 +12,15 @@ except ImportError:
 
 import getopt
 
+def version():
+	return 0.2
+
 def usage(config=None):
 	print """\
 rml -- 	RobotMetaLogger, a framework for logging and working 
 	with robot execution data.
 
-Usage: rml <command> [args]
+Usage: rml [-c config] <command> [args]
 	
 Command is one of:
 	help	Display this help.
@@ -25,6 +28,9 @@ Command is one of:
 	add 	Add a new log source.
 	run	Record a new run of logs, with all the configured sources.
 	show	Display the history of runs.
+
+Global options:
+	-c	Select the configuration file to use. [Default: $(cwd)/.rml/config.json]
 
 Run "rml help <cmd>" to get more info, if available.
 
@@ -40,15 +46,15 @@ class RML:
 		self.run_config = run_config
 		self.rml = None
 
-	def cfg(self):
+	def cfg(self, options):
 		'''Attempt initializing configuration when needed.'''
 		if not self.rml:
-			self.rml = session.RMLDir()
+			self.rml = session.RMLDir(options['cfg_dir'], options['cfg_filename'])
 		return self.rml.get_config()
 
-	def run(self):
+	def run(self, options):
 		'''run -- Start logging.'''
-		self.cfg()
+		self.cfg(options)
 		ps = []
 		for cfg in rml.config.get_probe_cfgs():
 			ps.append(rml.probes.create(cfg, env, cfg))
@@ -59,36 +65,59 @@ class RML:
 			return
 		launch.run(ps)
 
-	def add(self):
+	def add(self, options):
 		'''add <name> <type> -- Add new source of type 'type' and remember it with the given name.'''
 		pass
 
-	def init(self):
-		self.rml = session.initialize()
+	def init(self, options):
+		self.rml = session.initialize(options['cfg_dir'], options['cfg_filename'])
 
-	def show(self):
-		print "show: %s" % self.config
+	def show(self, options):
+		self.cfg(options)
+		print "show: %s" % self.rml.get_config()
 
 
 if __name__ == '__main__':
-	rml = RML(dict(verbose=False))
+	import sys, os
+
+	launcher = RML(dict(verbose=False))
 
 	try:
-		opts, args = getopt.gnu_getopt(sys.argv[1:], "hv", ["help", "version"])
-		if len(opts) == 0 and len(args) == 0:
+		opts, args = getopt.gnu_getopt(sys.argv[1:], "c:hv", ["config", "help", "version"])
+		if len(args) == 0:
 			usage()		
 		else:
-			if args[0] == "help":
-				if len(args) > 1 and hasattr(rml, args[1]):
-					doc = getattr(rml, args[1]).__doc__
+			# option defaults
+			options = {'cfg_dir': None, 'cfg_filename': None }			
+			show_help = False
+			# parse options			
+			for opt, val in opts:
+				if opt == "-c":
+					options['cfg_dir'] = os.path.dirname(val)
+					options['cfg_filename'] = os.path.basename(val)
+				if opt == "-h":
+					show_help = True
+				if opt == "-v":
+					print "RML Version %f" % version()
+					sys.exit(0)
+
+			# auto-generate help for commands
+			if show_help and args[0] == "help":
+				if len(args) > 1 and hasattr(launcher, args[1]):
+					doc = getattr(launcher, args[1]).__doc__
 					if not doc:
 						print "No more help available for command '%s'." % args[1]
 					else:
 						print doc
 				else:
 					usage()
-			elif hasattr(rml, args[0]):
-				getattr(rml, args[0])()
+			# run command, if found
+			elif hasattr(launcher, args[0]):
+				try:
+					getattr(launcher, args[0])(options)
+				except rml.config.ConfigurationException, ex:
+					print "Initialization failed: ", str(ex)
+					
 			else:
 				print "Command '%s' unknown." % args[0]
 	except getopt.GetoptError:
