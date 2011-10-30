@@ -4,18 +4,17 @@ import subprocess, signal
 import os
 
 class XCFImageProbe(Probe):
-	REQ_CONFIG = ["outputdir", "publisher" ]
+	__KEY_PUBLISHER = "publisher"
+	REQ_CONFIG = [ __KEY_PUBLISHER ]
 
 	def __init__(self, env, cfg):
 		Probe.__init__(self)
 		self.env = env
 		self.cfg = cfg
-		for key in self.REQ_CONFIG:
-			if not cfg.has_key(key):
-				raise ProbeConfigurationException("Required configuration item '%s' missing in %s" % (key, repr(cfg)))
+		self.cfg.check_keys(self.REQ_CONFIG)
 		self.proc = None
-		self.dirname = cfg['outputdir']
-		self.publisher = cfg['publisher']
+		self.dirname = cfg.get_outputlocation()
+		self.publisher = cfg.get(self.__KEY_PUBLISHER)
 
 	def do_start(self):
 		if not os.path.exists(self.dirname):

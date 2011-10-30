@@ -3,14 +3,12 @@ from .. import Probe, ProbeConfigurationException
 import subprocess, signal
 
 class XCFProbe(Probe):
+
 	def __init__(self, env, cfg):
 		Probe.__init__(self)
 		self.env = env
 		self.cfg = cfg
-		if not cfg.has_key("outputfile"):
-			raise ProbeConfigurationException("Required configuration item 'outputfile' missing in %s" % repr(cfg))
-		self.proc = None
-		self.logfilename = cfg['outputfile']
+		self.logfilename = cfg.get_outputlocation()
 
 	def do_start(self):
 		cmd = ["java", "-cp", "%s:%s/EventDataLogger.jar" % (self.env.get_classpath(), self.env.get_javabase()), "de.unibi.agai.events.log.LogAll", self.logfilename ]

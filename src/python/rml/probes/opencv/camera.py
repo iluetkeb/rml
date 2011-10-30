@@ -4,7 +4,10 @@ import threading
 import cv
 
 class OpenCVProbe(Probe):
-	REQ_CONFIG = [ "camera_num", "outputfile" ]
+	__KEY_CAMERA = "camera_num"
+	__KEY_DISPLAY = "display"
+	REQ_CONFIG = [ "%s:int" % __KEY_CAMERA ]
+	OPT_CONFIG = [ "%s:boolean" % __KEY_DISPLAY ]
 
 #	fourcc = cv.CV_FOURCC('H','2','6','4') # H.264 -- not supported everywhere, but used until probing available
 	fourcc = cv.CV_FOURCC('M','J','P','G')
@@ -13,27 +16,30 @@ class OpenCVProbe(Probe):
 		Probe.__init__(self)
 		self.env = env
 		self.cfg = cfg
-		for key in OpenCVProbe.REQ_CONFIG:
-			if not cfg.has_key(key):
-				raise ProbeConfigurationException("Required configuration item '%s' missing in %s" % (key, repr(cfg)))
+		self.cfg.check_keys(self.REQ_CONFIG)
+
 		self.proc = None
 		self.lock = threading.RLock()
 		self.do_cap = False
 		self.capture = None
 		self.writer = None
-		self.display = cfg.get("display", False)
+		self.display = cfg.get(self.__KEY_DISPLAY, False)
 
 	def do_start(self):
-		self.capture = cv.CaptureFromCAM(self.cfg['camera_num'])
+		num = self.cfg.get(self.__KEY_CAMERA)
+		self.capture = cv.CaptureFromCAM(num)
 		fps = cv.GetCaptureProperty(self.capture, cv.CV_CAP_PROP_FPS)
 		if fps == -1:
-			raise ProbeConfigurationException("Cannot determine fps -- is a camera attached?")
+			#raise ProbeConfigurationException("Cannot determine fps -- is a camera attached?")
+			print "Cannot determine fps -- is a camera attached?"
+			fps = 15
 		width = int(cv.GetCaptureProperty(self.capture, cv.CV_CAP_PROP_FRAME_WIDTH))
 		height = int(cv.GetCaptureProperty(self.capture, cv.CV_CAP_PROP_FRAME_HEIGHT))
 		frame_size = (width, height)
-		self.writer = cv.CreateVideoWriter(self.cfg['outputfile'], self.fourcc, int(fps), frame_size)
+		print width, height
+		self.writer = cv.CreateVideoWriter(self.cfg.get_outputlocation(), self.fourcc, int(fps), frame_size)
 		if self.display:
-			self.preview_name = "camera-%d" % self.cfg['camera_num']
+			self.preview_name = "camera-%d" % num
 			self.preview_window = cv.NamedWindow(self.preview_name, 1)
 		self.capturethread = threading.Thread(target=self._capture, name="opencv capture")
 		self.do_cap = True
@@ -60,3 +66,4 @@ class OpenCVProbe(Probe):
 
 	def __repr__(self):
 		return repr(self.cfg)
+

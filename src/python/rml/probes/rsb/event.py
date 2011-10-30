@@ -3,8 +3,10 @@ from .. import Probe, ProbeConfigurationException
 import subprocess, signal
 
 class RSBProbe(Probe):
-	REQ_CONFIG = [ "spreadhost", "spreadport", "outputfile" ]
-
+	__KEY_SPREAD_HOST = "spreadhost"
+	__KEY_SPREAD_PORT = "spreadport"
+	
+	REQ_CONFIG = [ __KEY_SPREAD_HOST, __KEY_SPREAD_PORT ]
 
 	def __init__(self, env, cfg):
 		Probe.__init__(self)
@@ -14,8 +16,8 @@ class RSBProbe(Probe):
 		self.cfg = cfg
 		self.proc = None
 		self.logfilename = cfg.get_outputlocation()
-		self.spreadhost = cfg.get('spreadhost')
-		self.spreadport = cfg.get('spreadport', 4803)
+		self.spreadhost = cfg.get(__KEY_SPREAD_HOST)
+		self.spreadport = cfg.get(__KEY_SPREAD_PORT)
 
 	def do_start(self):
 		cmd = ["bag-record", "-o", self.logfilename, "spread://%s:%d" % (self.spreadhost, self.spreadport) ]
