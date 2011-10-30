@@ -5,7 +5,7 @@ import environment
 def dump_initial_config_string(output):
 	'''Write the initial (blank) configuration to the given IO (file or StringIO) object.
 	'''
-	json.dump(Configuration.INITIAL_CONFIG, output)
+	json.dump(Configuration.INITIAL_CONFIG, output, sort_keys=True, indent=4)
 
 class Configuration:
 	'''
@@ -18,7 +18,10 @@ class Configuration:
 	1
 	'''
 
+	__CFG_VERSION = 0.3
+
 	__KEY_BASE = 'rml_cfg'
+	__KEY_VERSION = 'version'
 	__KEY_PROBES = 'probes'
 	__KEY_ENV = 'environment'
 	__KEY_STATE = 'state'
@@ -27,6 +30,7 @@ class Configuration:
 
 	INITIAL_CONFIG = {
 		__KEY_BASE: {
+			__KEY_VERSION: __CFG_VERSION,
 			__KEY_PROBES: {}, 
 			__KEY_ENV: {}, 
 			__KEY_STATE: {
@@ -38,8 +42,14 @@ class Configuration:
 
 	def __init__(self, conf_input):
 		'''Load configuration from the given IO object (file or StringIO).'''
-		self.base_config = json.load(conf_input)
+		self.base_config = json.load(conf_input)		
 		self.rml_config = self.base_config[self.__KEY_BASE]
+		if not self.rml_config.has_key(self.__KEY_VERSION):
+			raise ConfigurationException("Configuration '%s' missing version information." %
+				conf_input.name)
+		if self.rml_config[self.__KEY_VERSION] < 0.3:
+			raise ConfigurationException("Versions prior to 0.3 not supported anymore.")
+
 		self.env = environment.Instance
 		self.env.load(self.base_config)
 		self.probe_cfgs = []
@@ -107,6 +117,6 @@ class ConfigurationException(Exception):
 		self.value = value
 
 	def __str__(self):
-		return repr(self.value)
+		return str(self.value)
 
 
