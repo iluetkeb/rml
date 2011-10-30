@@ -5,7 +5,6 @@ try:
 	import rml.rml_config
 	if not rml.rml_config.is_installed():
 		path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-		print "path", path
 		sys.path.append(path)
 except ImportError:
 	pass
@@ -25,12 +24,11 @@ Usage: rml [-c config] <command> [args]
 Command is one of:
 	help	Display this help.
 	init	Initialize a new log destination directory.
-	add 	Add a new log source.
-	run	Record a new run of logs, with all the configured sources.
+	run		Record a new run of logs, with all the configured sources.
 	show	Display the history of runs.
 
 Global options:
-	-c	Select the configuration file to use. [Default: $(cwd)/.rml/config.json]
+	-c	Specify configuration file. [Default: $(cwd)/.rml/config.json]
 
 Run "rml help <cmd>" to get more info, if available.
 
@@ -54,10 +52,13 @@ class RML:
 
 	def run(self, options):
 		'''run -- Start logging.'''
-		self.cfg(options)
 		ps = []
-		for cfg in rml.config.get_probe_cfgs():
-			ps.append(rml.probes.create(cfg, env, cfg))
+		for cfg in self.cfg(options).get_probe_cfgs():
+			try:
+				ps.append(rml.probes.create(cfg, cfg.get_env(), cfg))
+			except rml.probes.ProbeConfigurationException, ex:
+				print "Could not find a probe matching %s\nError: %s" % (cfg, ex)
+				return 
 	
 		print ps
 		if not ps or len(ps) == 0:
@@ -65,9 +66,11 @@ class RML:
 			return
 		launch.run(ps)
 
-	def add(self, options):
-		'''add <name> <type> -- Add new source of type 'type' and remember it with the given name.'''
-		pass
+#	def add(self, options):
+#		'''add <name> <class> <type> --		
+#			Add a new 'type' source for class 'class' and remember 
+#			it with the given name.'''
+#		pass
 
 	def init(self, options):
 		self.rml = session.initialize(options['cfg_dir'], options['cfg_filename'])
@@ -101,14 +104,19 @@ if __name__ == '__main__':
 					print "RML Version %f" % version()
 					sys.exit(0)
 
+			#print options, show_help
+
 			# auto-generate help for commands
-			if show_help and args[0] == "help":
-				if len(args) > 1 and hasattr(launcher, args[1]):
-					doc = getattr(launcher, args[1]).__doc__
-					if not doc:
-						print "No more help available for command '%s'." % args[1]
+			if show_help:
+				if len(args) > 0:
+					if hasattr(launcher, args[0]):
+						doc = getattr(launcher, args[0]).__doc__
+						if not doc:
+							print "No more help available for command '%s'." % args[1]
+						else:
+							print doc
 					else:
-						print doc
+						print "No such command: '%s'" % args[0]
 				else:
 					usage()
 			# run command, if found

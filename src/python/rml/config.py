@@ -105,27 +105,33 @@ class ProbeConfiguration:
 	def check_keys(self, keys):
 		'''Check that all keys in the specified list are present as configuration variables.
 		The list of names may contain embedded type-specifiers, seperated by ':',
-		like so: count:int. Multiple type-specifiers can be given, separated by ','.'''
+		like so: count:int. Multiple type-specifiers can be given, separated by ','.
+		If no type-specifier is given, strs (i.e. string or unicode string) is assumed.'''
+		print "Checking", keys		
+	
 		missing = []
 		badtype = []
 		for key in keys:
 			name = key
 			try:
 				name, t = key.split(":", 2)
-				ts = [self.__typemap[s] for s in t.split(",")]
-			except ValueError:
+				ts = tuple([self.__typemap[s] for s in t.split(",")])
+			except ValueError, ex:
 				ts = StringTypes
 
-			if not self.probe_cfg.has_key(key):
+			print name, ts
+			if not self.probe_cfg.has_key(name):
 				missing.append(key)
-			if not isinstance(self.probe_cfg[key], ts):
+			if not isinstance(self.probe_cfg[name], ts):
 				badtype.append((key, ts, type(self.probe_cfg[key])))
 		msg = []		
 		if len(missing) > 0:
+			print "Missing:", missing
 			msg.append("Required key(s) '%s' missing in probe_cfg '%s'" %
 				(missing, self.probe_cfg ))
 		if len(badtype) > 0:
 			for bt in badtype:
+				print "badtype", bt
 				msg.append("Key '%s' had bad type. Expected: '%s', was '%s'" % bt)
 
 		if len(msg) > 0:
@@ -144,6 +150,15 @@ class ProbeConfiguration:
 	def get_type(self):
 		return self.probe_type
 
+	def get_env(self):
+		return self.base_cfg.get_env()
+
+	def __str__(self):
+		return str(self.probe_cfg)	
+
+	def __repr__(self):
+		return repr(self.probe_cfg)
+
 class ConfigurationException(Exception):
 	def __init__(self, value):
 		Exception.__init__(self)
@@ -151,5 +166,4 @@ class ConfigurationException(Exception):
 
 	def __str__(self):
 		return str(self.value)
-
 
