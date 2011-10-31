@@ -50,7 +50,8 @@ import ffmpeg.screen
 PROBES = {
 	"event": { 
 		"xcf": XCFProbe, 
-		"rsb": RSBProbe},
+		"rsb": RSBProbe
+	},
 	"camera": {
 		"opencv": OpenCVProbe,
 		"xcf": XCFImageProbe
