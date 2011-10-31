@@ -21,3 +21,8 @@ ltmain.sh
 
 src/python/build/
 src/python/dist/
+src/python/rml/rml_config.py
+*.avi
+*.mpeg
+*.mp4
+
