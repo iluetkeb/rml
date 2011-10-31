@@ -24,22 +24,24 @@ class OpenCVProbe(Probe):
 		self.capture = None
 		self.writer = None
 		self.display = cfg.get(self.__KEY_DISPLAY, False)
+		self.num = self.cfg.get(self.__KEY_CAMERA)
 
 	def do_start(self):
-		num = self.cfg.get(self.__KEY_CAMERA)
-		self.capture = cv.CaptureFromCAM(num)
+		self.capture = cv.CaptureFromCAM(self.num)
+		if not self.capture:
+			raise ProbeConfigurationException("Opening device %d failed" % self.num)
+
 		fps = cv.GetCaptureProperty(self.capture, cv.CV_CAP_PROP_FPS)
-		if fps == -1:
-			#raise ProbeConfigurationException("Cannot determine fps -- is a camera attached?")
-			print "Cannot determine fps -- is a camera attached?"
-			fps = 15
+		if fps == -1 or fps == 0:
+			raise ProbeConfigurationException("Cannot determine fps -- is a camera attached?")
 		width = int(cv.GetCaptureProperty(self.capture, cv.CV_CAP_PROP_FRAME_WIDTH))
 		height = int(cv.GetCaptureProperty(self.capture, cv.CV_CAP_PROP_FRAME_HEIGHT))
 		frame_size = (width, height)
-		print width, height
+		print "capture configuration, fps=%f, width=%d, height=%d" % ( fps, width, height )
+		
 		self.writer = cv.CreateVideoWriter(self.cfg.get_outputlocation(), self.fourcc, int(fps), frame_size)
 		if self.display:
-			self.preview_name = "camera-%d" % num
+			self.preview_name = "camera-%d" % self.num
 			self.preview_window = cv.NamedWindow(self.preview_name, 1)
 		self.capturethread = threading.Thread(target=self._capture, name="opencv capture")
 		self.do_cap = True
