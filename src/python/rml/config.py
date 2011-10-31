@@ -107,8 +107,6 @@ class ProbeConfiguration:
 		The list of names may contain embedded type-specifiers, seperated by ':',
 		like so: count:int. Multiple type-specifiers can be given, separated by ','.
 		If no type-specifier is given, strs (i.e. string or unicode string) is assumed.'''
-		print "Checking", keys		
-	
 		missing = []
 		badtype = []
 		for key in keys:
@@ -119,19 +117,16 @@ class ProbeConfiguration:
 			except ValueError, ex:
 				ts = StringTypes
 
-			print name, ts
 			if not self.probe_cfg.has_key(name):
 				missing.append(key)
 			if not isinstance(self.probe_cfg[name], ts):
 				badtype.append((key, ts, type(self.probe_cfg[key])))
 		msg = []		
 		if len(missing) > 0:
-			print "Missing:", missing
 			msg.append("Required key(s) '%s' missing in probe_cfg '%s'" %
 				(missing, self.probe_cfg ))
 		if len(badtype) > 0:
 			for bt in badtype:
-				print "badtype", bt
 				msg.append("Key '%s' had bad type. Expected: '%s', was '%s'" % bt)
 
 		if len(msg) > 0:
