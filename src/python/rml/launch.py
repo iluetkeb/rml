@@ -1,5 +1,7 @@
 #! /usr/bin/python
 
+import time
+
 def run(probes):
 	try:
 		print "Starting Probes: %s" % probes
