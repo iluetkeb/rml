@@ -6,7 +6,7 @@ class RSBProbe(Probe):
 	__KEY_SPREAD_HOST = "spreadhost"
 	__KEY_SPREAD_PORT = "spreadport"
 	
-	REQ_CONFIG = [ __KEY_SPREAD_HOST, __KEY_SPREAD_PORT ]
+	REQ_CONFIG = [ __KEY_SPREAD_HOST, "%s:int" % __KEY_SPREAD_PORT ]
 
 	def __init__(self, env, cfg):
 		Probe.__init__(self)
