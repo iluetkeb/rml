@@ -1,6 +1,24 @@
 {
-"rml_cfg": {
-	"xcflog": "{cwd}/testlog.xml"
+	"rml_cfg": {
+		"version": 0.3,
+		"probes": {
+			"screen": {
+				"class": "screen",
+				"type": "ffmpeg",
+				"display": ":0.0",
+				"location": "screencap.avi",
+				"scale": 1
+			}
+		},
+		"iprobes": {
+			"cam": {
+				"class": "camera",
+				"type": "opencv",
+				"camera_num": 0,
+				"location": "capture.avi",
+				"display": true
+			}
+		}
 	}
 }
 
