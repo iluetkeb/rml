@@ -26,6 +26,7 @@ Command is one of:
 	init	Initialize a new log destination directory.
 	run		Record a new run of logs, with all the configured sources.
 	show	Display the history of runs.
+	time	Print out the time with sub-second accuracy
 
 Global options:
 	-c	Specify configuration file. [Default: $(cwd)/.rml/config.json]
@@ -74,6 +75,18 @@ class RML:
 
 	def init(self, options):
 		self.rml = session.initialize(options['cfg_dir'], options['cfg_filename'])
+
+	def time(self, options):
+		import time
+		sys.stdout.write("\x1b[2J")
+		while True:
+			sub_sec = str(time.time()).split(".")[1][:2]
+			timestr = time.strftime("%Y-%b-%d %T.")
+			sys.stdout.write("\x1b[s")
+			sys.stdout.write(timestr)
+			sys.stdout.write(sub_sec)
+			sys.stdout.write("\x1b[u")
+
 
 	def show(self, options):
 		self.cfg(options)
