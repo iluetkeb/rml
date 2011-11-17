@@ -16,8 +16,8 @@ class RSBProbe(Probe):
 		self.cfg = cfg
 		self.proc = None
 		self.logfilename = cfg.get_outputlocation()
-		self.spreadhost = cfg.get(__KEY_SPREAD_HOST)
-		self.spreadport = cfg.get(__KEY_SPREAD_PORT)
+		self.spreadhost = cfg.get(self.__KEY_SPREAD_HOST)
+		self.spreadport = cfg.get(self.__KEY_SPREAD_PORT)
 
 	def do_start(self):
 		cmd = ["bag-record", "-o", self.logfilename, "spread://%s:%d" % (self.spreadhost, self.spreadport) ]
