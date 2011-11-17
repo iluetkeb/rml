@@ -1,6 +1,19 @@
 {
-"rml_cfg": {
-	"xcflog": "{cwd}/testlog.xml"
-	}
+    "rml_cfg": {
+        "environment": {}, 
+        "probes": {
+			"cam": {
+				"class": "camera",
+				"type": "opencv",
+				"camera_num": 1,
+				"location": "capture.avi",
+				"display": true
+			}
+		}, 
+        "state": {
+            "last_run": 0, 
+            "last_session": 0
+        }, 
+        "version": 0.3
+    }
 }
-
