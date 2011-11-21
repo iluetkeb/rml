@@ -47,6 +47,7 @@ class TCPProbe(Probe):
 
 	def do_start(self):
 		print "Starting tcp receiption pipeline"
+		global _initialized
 		if not _initialized:
 			gobject.threads_init()
 			_initialized = True
