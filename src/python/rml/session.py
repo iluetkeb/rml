@@ -15,6 +15,8 @@ def cfg_defaults(cfg_dir=None, cfg_filename=None):
 		cfg_dir = os.path.join(os.getcwd(), RMLDir.DEF_DIR_NAME)
 	if not cfg_filename:
 		cfg_filename = os.path.join(cfg_dir, RMLDir.DEF_CONFIG_NAME)
+	else:
+		cfg_filename = os.path.join(cfg_dir, cfg_filename)
 	return (cfg_dir, cfg_filename)
 	
 
