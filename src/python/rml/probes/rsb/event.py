@@ -9,11 +9,9 @@ class RSBProbe(Probe):
 	REQ_CONFIG = [ __KEY_SPREAD_HOST, "%s:int" % __KEY_SPREAD_PORT ]
 
 	def __init__(self, env, cfg):
-		Probe.__init__(self)
+		Probe.__init__(self, env, cfg)
 		cfg.check_keys(self.REQ_CONFIG)
 
-		self.env = env
-		self.cfg = cfg
 		self.proc = None
 		self.logfilename = cfg.get_outputlocation()
 		self.spreadhost = cfg.get(self.__KEY_SPREAD_HOST)

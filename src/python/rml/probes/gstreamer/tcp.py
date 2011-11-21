@@ -20,9 +20,7 @@ class TCPProbe(Probe):
 	WRI_NAME = "writer"
 
 	def __init__(self, env, cfg):
-		Probe.__init__(self)
-		self.env = env
-		self.cfg = cfg
+		Probe.__init__(self, env, cfg)
 		self.cfg.check_keys(self.REQ_CONFIG)
 
 		self.pipeline = gst.Pipeline("tcpcapture")

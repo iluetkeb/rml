@@ -5,9 +5,7 @@ import subprocess, signal
 class XCFProbe(Probe):
 
 	def __init__(self, env, cfg):
-		Probe.__init__(self)
-		self.env = env
-		self.cfg = cfg
+		Probe.__init__(self, env, cfg)
 		self.logfilename = cfg.get_outputlocation()
 
 	def do_start(self):

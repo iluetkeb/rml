@@ -16,9 +16,7 @@ class ScreenProbe(Probe):
 	OPT_CONFIG = [ "%s:int" % __KEY_FPS, "%s:int" % __KEY_WIDTH, "%s:int" % __KEY_HEIGHT, "%s:int" % __KEY_QUALITY, "%s:strs", "%s:int" % __KEY_SCALE ]
 
 	def __init__(self, env, cfg):
-		Probe.__init__(self)
-		self.env = env
-		self.cfg = cfg
+		Probe.__init__(self, env, cfg)
 		self.cfg.check_keys(self.REQ_CONFIG)
 
 		self.capturefile = cfg.get_outputlocation()

@@ -4,8 +4,10 @@ class Probe:
 	STARTED = 2
 	STOPPING = 3
 
-	def __init__(self):
+	def __init__(self, env, cfg):
 		self._state = Probe.IDLE
+		self.env = env
+		self.cfg = cfg
 
 	def start(self):
 		if self._state != Probe.IDLE:

@@ -13,9 +13,7 @@ class OpenCVProbe(Probe):
 	fourcc = cv.CV_FOURCC('M','J','P','G')
 
 	def __init__(self, env, cfg):
-		Probe.__init__(self)
-		self.env = env
-		self.cfg = cfg
+		Probe.__init__(self, env, cfg)
 		self.cfg.check_keys(self.REQ_CONFIG)
 
 		self.proc = None
