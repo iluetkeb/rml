@@ -47,9 +47,11 @@ public class ConvertRunnable implements Runnable {
     public void run() {
         try {
             final long timestamp = grabTime(imageEvent.getData().getDocument());
+            logger.log(Level.FINER, "Grab time {0}", timestamp);            
             final ImageDecoder decoder = new ImageDecoder();
             final ImageProvider spec = decoder.decode(imageEvent.getData());
             final BufferedImage img = spec.createBufferedImage(null);
+            logger.log(Level.FINER, "Decoded image {0}", img);            
             final File imageFile = new File(baseName + "-" + timestamp + ".jpg");
             final ImageOutputStream ios = ImageIO.createImageOutputStream(imageFile);
             writer.setOutput(ios);
@@ -67,6 +69,10 @@ public class ConvertRunnable implements Runnable {
         if (createdNodes.size() < 1) {
             return receiveTime;
         }
-        return Long.parseLong(createdNodes.get(0).getValue());
+        final long result = Long.parseLong(createdNodes.get(0).getValue());
+	if(result == 0) {
+		return receiveTime;
+	} else
+		return result;
     }
 }

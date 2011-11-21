@@ -51,6 +51,7 @@ public class SingleImageLogger {
                 
                 @Override
                 public void handleEvent(PublishEvent event) {
+		    try {
                     final int size = exec.getQueue().size();
                     final long duration = System.currentTimeMillis() - start;
                     // allow for some start-up backlog, but then warn when 
@@ -60,19 +61,20 @@ public class SingleImageLogger {
                     }
                     exec.submit(new ConvertRunnable(baseName, event, quality));
                     int cur = count.incrementAndGet();
-                    if((cur % 10000) == 0) {
+                    if((cur % 100) == 0) {
                         logger.log(Level.INFO, "Logged {0} images to {1} in {2}ms ({3}/s)", 
                                 new Object[]{cur, baseName, duration, (double)cur/(double)(duration/1000)});
                     }
+		    } catch(Exception ex) {
+            		Logger.getLogger(SingleImageLogger.class.getName()).
+                    		log(Level.SEVERE, null, ex);
+		    }
                 }
                 
             });
-        } catch (NameNotFoundException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(SingleImageLogger.class.getName()).
                     log(Level.SEVERE, null, ex);
-        } catch (InitializeException ex) {
-            Logger.getLogger(SingleImageLogger.class.getName()).
-                    log(Level.SEVERE, null, ex);
-        }
+        } 
     }
 }
