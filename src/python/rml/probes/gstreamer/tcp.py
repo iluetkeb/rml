@@ -15,7 +15,7 @@ class TCPProbe(Probe):
 	__KEY_HOST = "host"
 	__KEY_PORT = "port"
 
-	REQ_CONFIG = [ __KEY_HOST, __KEY_PORT ]
+	REQ_CONFIG = [ __KEY_HOST, "%s:int" % __KEY_PORT ]
 	REC_NAME = "receiver"
 	WRI_NAME = "writer"
 
