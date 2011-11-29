@@ -13,6 +13,16 @@ class Configuration:
 
 	>>> from StringIO import StringIO
 	>>> c = Configuration(StringIO(json.dumps(Configuration.INITIAL_CONFIG)))
+	>>> c._session_run()
+	(0, 0)
+	>>> c.inc_run()
+	>>> c._session_run()
+	(0, 1)
+	>>> c.inc_session()
+	>>> c._session_run()
+	(1, 0)
+	>>> c.get_outputdir()
+	's01r000'
 	>>> c = Configuration(StringIO(json.dumps({'rml_cfg': { 'version': 0.3, 'probes': { 'test': { 'class': 'event', 'type': 'XCF', 'location': 'xcflog.xml' }}}})))
 	>>> len(c.get_probe_cfgs())
 	1
@@ -70,6 +80,34 @@ class Configuration:
 	def get_probe_cfgs(self):
 		return self.probe_cfgs
 
+	def store(self, output):
+		json.dump(self.rml_config, output)
+
+	def _state(self):
+		return self.rml_config[self.__KEY_STATE]
+
+	def _inc_state(self, var):
+		self._state()[var] = self._state()[var] + 1
+
+	def inc_run(self):
+		'''Increment run'''
+		self._inc_state(self.__KEY_S_RUN)
+
+	def inc_session(self):
+		'''Increment session and reset run to 0'''
+		self._inc_state(self.__KEY_S_SESSION)
+		self._state()[self.__KEY_S_RUN] = 0
+
+	def _session_run(self):
+		'''Get the (session, run) tuple'''
+		s = self.rml_config[self.__KEY_STATE]
+		return (s[self.__KEY_S_SESSION], s[self.__KEY_S_RUN])
+
+	def get_outputdir(self):
+		'''Return the directory where output files should be stored. This does not imply that this directory actually exists.'''
+		return "s%02dr%03d" % self._session_run()
+		
+
 from types import *
 
 class ProbeConfiguration:
@@ -121,6 +159,8 @@ class ProbeConfiguration:
 				missing.append(key)
 			if not isinstance(self.probe_cfg[name], ts):
 				badtype.append((key, ts, type(self.probe_cfg[key])))
+
+		# if we have missing values, format an appropriate error message
 		msg = []		
 		if len(missing) > 0:
 			msg.append("Required key(s) '%s' missing in probe_cfg '%s'" %
