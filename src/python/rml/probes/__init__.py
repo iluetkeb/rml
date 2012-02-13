@@ -47,6 +47,7 @@ from xcf.camera import XCFImageProbe
 from rsb.event import RSBProbe
 from opencv.camera import OpenCVProbe
 from gstreamer.tcp import TCPProbe
+from gstreamer.network_camera import H264NetworkCameraProbe
 import ffmpeg.screen
 
 PROBES = {
@@ -56,7 +57,8 @@ PROBES = {
 	},
 	"camera": {
 		"opencv": OpenCVProbe,
-		"xcf": XCFImageProbe
+		"xcf": XCFImageProbe,
+		"network_h264": H264NetworkCameraProbe
 	},
 	"screen": {
 		'ffmpeg': ffmpeg.screen.ScreenProbe 
