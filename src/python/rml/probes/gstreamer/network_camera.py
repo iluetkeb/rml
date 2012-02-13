@@ -18,6 +18,7 @@ class H264NetworkCameraProbe(Probe):
 	__KEY_FPS = "fps"
 	__KEY_USER = "username"
 	__KEY_PASSWD = "password"
+	__KEY_NOAUDIO = "noaudio"
 
 	REQ_CONFIG = [ __KEY_URL, "%s:int" % __KEY_WIDTH, "%s:int" % __KEY_HEIGHT, "%s:int" % __KEY_FPS ]
 
@@ -27,18 +28,23 @@ class H264NetworkCameraProbe(Probe):
 
 		self.url = cfg.get(self.__KEY_URL)
 		args = { "output": cfg.get_outputlocation(), "user": cfg.get(self.__KEY_USER), 
-			"pwd": cfg.get(self.__KEY_PASSWD), "url": url,
+			"pwd": cfg.get(self.__KEY_PASSWD), "url": self.url,
 			"width": cfg.get(self.__KEY_WIDTH), "height": cfg.get(self.__KEY_HEIGHT),
 			"fps": cfg.get(self.__KEY_FPS)
 		}
 		spec = ""
+		# check whether we need authorization
 		if cfg.get(self.__KEY_USER):
-			spec = "rtspsrc location=\"%{url}s\" user-id=%{user}s user-pw=%{pwd} latency=0 name=rtp" % args
+			spec = "rtspsrc location=\"{url}\" user-id={user} user-pw={pwd} latency=0 name=rtp".format(**args)
 	
-		else
-			spec = "rtspsrc location=\"%{url}s\" latency=0 name=rtp" % args
+		else:
+			spec = "rtspsrc location=\"{url}\" latency=0 name=rtp".format(**args)
 
-		spec += " rtp. ! rtpmp4gdepay ! \"audio/mpeg, mpegversion=(int)4\" ! faad ! faac ! matroskamux name=mux mux. ! filesink location=\"%{output}s\" name=sink rtp. ! rtph264depay ! \"video/x-h264, width=%{width}d, height=%{height}d, framerate=(fraction)%{fps}d/1\" ! mux." % args
+		spec += " rtp. ! rtph264depay ! capsfilter caps=\"video/x-h264, width={width}, height={height}, framerate=(fraction){fps}/1\" ! matroskamux name=mux ! filesink location={output} ".format(**args)
+		# add audio, unless disabled
+		if not cfg.get(self.__KEY_NOAUDIO):
+			spec += "  rtp. ! rtpmp4gdepay ! capsfilter caps=\"audio/mpeg, mpegversion=(int)4\" ! faad ! faac ! mux. ".format(**args)
+		print spec
 
 		self.pipeline = gst.parse_launch(spec)
 
@@ -50,11 +56,11 @@ class H264NetworkCameraProbe(Probe):
 		print "Message: ", message.type
 
 	def do_start(self):
-		print "Starting network camera pipeline for " % self.url
+		print "Starting network camera pipeline for %s" % self.url
 		global _initialized
-		if not _initialized:
-			gobject.threads_init()
-			_initialized = True
+		#if not _initialized:
+		gobject.threads_init()
+		#	_initialized = True
 
 		ret = self.pipeline.set_state(gst.STATE_PLAYING)
 		print self.pipeline.get_state()#, dir(self.pipeline)
