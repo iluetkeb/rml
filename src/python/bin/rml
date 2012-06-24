@@ -1,6 +1,6 @@
 #! /usr/bin/python
 
-import sys, os.path
+import sys, os
 try:
 	import rml.rml_config
 	if not rml.rml_config.is_installed():
@@ -54,6 +54,12 @@ class RML:
 	def run(self, options):
 		'''run -- Start logging.'''
 		ps = []
+		# create a new run
+		self.cfg().inc_run()
+		# set up
+		launcher = launch.Launch(self.cfg())
+		launcher.setup()
+		# load config
 		for cfg in self.cfg(options).get_probe_cfgs():
 			try:
 				ps.append(rml.probes.create(cfg, cfg.get_env(), cfg))
@@ -65,6 +71,7 @@ class RML:
 		if not ps or len(ps) == 0:
 			print "No probes configured, terminating."
 			return
+		# run
 		launch.run(ps)
 
 #	def add(self, options):

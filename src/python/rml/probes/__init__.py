@@ -13,6 +13,10 @@ class Probe:
 		if self._state != Probe.IDLE:
 			return
 		self._state = Probe.STARTING
+		# check for existing log files, and remove them if necessary
+		loc = self.cfg.get_outputlocation()
+
+		# do start
 		self.do_start()
 		self._state = Probe.STARTED
 
