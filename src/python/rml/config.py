@@ -52,6 +52,7 @@ class Configuration:
 
     def __init__(self, conf_input):
         """Load configuration from the given IO object (file or StringIO)."""
+        self.conf_source = conf_input.name
         self.base_config = json.load(conf_input)
         self.rml_config = self.base_config[self.__KEY_BASE]
         if not self.rml_config.has_key(self.__KEY_VERSION):
@@ -82,6 +83,13 @@ class Configuration:
 
     def store(self, output):
         json.dump(self.rml_config, output)
+
+    def update(self):
+        f = file(self.conf_source, "w")
+        try:
+            json.dump({'rml_cfg': self.rml_config}, f)
+        finally:
+            f.close()
 
     def _state(self):
         return self.rml_config[self.__KEY_STATE]

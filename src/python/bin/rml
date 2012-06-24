@@ -27,6 +27,7 @@ Command is one of:
 	run		Record a new run of logs, with all the configured sources.
 	show	Display the history of runs.
 	time	Print out the time with sub-second accuracy
+	new_session	Increment the session number
 
 Global options:
 	-c	Specify configuration file. [Default: $(cwd)/.rml/config.json]
@@ -55,7 +56,9 @@ class RML:
 		'''run -- Start logging.'''
 		ps = []
 		# create a new run
-		self.cfg(options).inc_run()
+		cfg = self.cfg(options)
+		cfg.inc_run()
+		cfg.update()
 		# set up
 		launcher = launch.Launcher(self.cfg(options))
 		launcher.setup()
@@ -94,6 +97,10 @@ class RML:
 			sys.stdout.write(sub_sec)
 			sys.stdout.write("\x1b[u")
 
+	def new_session(self, options):
+		cfg = self.cfg(options)
+		cfg.inc_session()
+		cfg.update()
 
 	def show(self, options):
 		self.cfg(options)
