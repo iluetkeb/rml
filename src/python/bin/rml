@@ -55,9 +55,9 @@ class RML:
 		'''run -- Start logging.'''
 		ps = []
 		# create a new run
-		self.cfg().inc_run()
+		self.cfg(options).inc_run()
 		# set up
-		launcher = launch.Launch(self.cfg())
+		launcher = launch.Launcher(self.cfg(options))
 		launcher.setup()
 		# load config
 		for cfg in self.cfg(options).get_probe_cfgs():

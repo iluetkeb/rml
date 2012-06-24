@@ -105,7 +105,7 @@ class Configuration:
 
     def get_outputdir(self):
         '''Return the directory where output files should be stored. This does not imply that this directory actually exists.'''
-        return "s%02dr%03d" % self._session_run()
+        return "S%02d_R%03d" % self._session_run()
 
 
 from types import *

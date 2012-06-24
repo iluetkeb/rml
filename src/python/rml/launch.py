@@ -1,6 +1,6 @@
 #! /usr/bin/python
 
-import time
+import time, os.path
 
 class Launcher:
 	def __init__(self, cfg):
@@ -10,7 +10,7 @@ class Launcher:
 		# set up the output directory
 		outdir = self.cfg.get_outputdir()
 		if not os.path.exists(outdir):
-			os.mkdir(outdir, mode=0770) # create non-world-readable -- for log data, better to err on the safe side
+			os.mkdir(outdir, 0770) # create non-world-readable -- for log data, better to err on the safe side
 		elif not os.path.isdir(outdir):
 			raise Exception("Output path %s exists but is not a directory!" % outdir)
 
