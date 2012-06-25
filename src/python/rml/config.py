@@ -106,6 +106,12 @@ class Configuration:
         self._inc_state(self.__KEY_S_SESSION)
         self._state()[self.__KEY_S_RUN] = 0
 
+    def get_session_number(self):
+        return self._state()[self.__KEY_S_SESSION]
+
+    def get_run_number(self):
+        return self._state()[self.__KEY_S_RUN]
+
     def _session_run(self):
         '''Get the (session, run) tuple'''
         s = self.rml_config[self.__KEY_STATE]

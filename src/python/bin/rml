@@ -101,6 +101,7 @@ class RML:
 		cfg = self.cfg(options)
 		cfg.inc_session()
 		cfg.update()
+		print "Next session will be %d" % cfg.get_session_number()
 
 	def show(self, options):
 		self.cfg(options)
