@@ -52,7 +52,7 @@ class TCPProbe(Probe):
 			gst.element_link_many(src, enc, sink)
 		else:
 			caps_elem = gst.element_factory_make("capsfilter")
-			caps_elem.set_property("caps", gst.Caps(caps))
+			caps_elem.set_property("caps", gst.Caps(str(caps)))
 			self.pipeline.add(src, caps_elem, enc, sink)
 			gst.element_link_many(src, caps_elem, enc, sink)
 
