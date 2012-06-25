@@ -1,6 +1,6 @@
 import json
 
-import environment
+import environment, os.path
 
 def dump_initial_config_string(output):
     '''Write the initial (blank) configuration to the given IO (file or StringIO) object.
