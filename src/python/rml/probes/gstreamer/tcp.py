@@ -16,6 +16,7 @@ class TCPProbe(Probe):
 	__KEY_PORT = "port"
 	__KEY_CONTAINER = "container"
 	__KEY_CAPS = "format"
+	__KEY_PROTOCOL = "protocol"
 	'''Format for the file to write. May be 'wav' or 'matroska'.'''
 
 	REQ_CONFIG = [ __KEY_HOST, "%s:int" % __KEY_PORT ]
@@ -27,6 +28,9 @@ class TCPProbe(Probe):
 		self.cfg.check_keys(self.REQ_CONFIG)
 		container = cfg.get(self.__KEY_CONTAINER, "wav")
 		caps = cfg.get(self.__KEY_CAPS, None)
+		protocol = cfg.get(self.__KEY_PROTOCOL, 1)
+		if protocol == 0 and not caps:
+			raise "If protocol is 0, caps must be given!"
 
 		self.pipeline = gst.Pipeline("tcpcapture")
 		src = gst.element_factory_make("tcpclientsrc", self.REC_NAME)
@@ -40,7 +44,7 @@ class TCPProbe(Probe):
 		src.set_property("host", cfg.get(self.__KEY_HOST))
 		src.set_property("port", cfg.get(self.__KEY_PORT))
 		# select gdp protocol for automatic caps negotation. must be used on server-side, too!
-		src.set_property("protocol", 1)
+		src.set_property("protocol", protocol)
 		sink.set_property("location", cfg.get_outputlocation())
 		sink.set_property("sync", False)
 		if caps is None:
