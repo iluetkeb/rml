@@ -1,7 +1,7 @@
 from .. import Probe, ProbeConfigurationException
 
 import threading
-import cv
+from opencv import cv, highgui
 
 class OpenCVProbe(Probe):
 	__KEY_CAMERA = "camera_num"
@@ -10,7 +10,7 @@ class OpenCVProbe(Probe):
 	OPT_CONFIG = [ "%s:boolean" % __KEY_DISPLAY ]
 
 #	fourcc = cv.CV_FOURCC('H','2','6','4') # H.264 -- not supported everywhere, but used until probing available
-	fourcc = cv.CV_FOURCC('M','J','P','G')
+	fourcc = highgui.CV_FOURCC('M','J','P','G')
 
 	def __init__(self, env, cfg):
 		Probe.__init__(self, env, cfg)
