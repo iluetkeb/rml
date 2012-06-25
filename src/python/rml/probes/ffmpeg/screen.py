@@ -1,6 +1,6 @@
-from .. import Probe, ProbeConfigurationException
+from rml.probes import Probe, ProbeConfigurationException
 
-import subprocess, signal
+import subprocess
 
 import gtk.gdk
 

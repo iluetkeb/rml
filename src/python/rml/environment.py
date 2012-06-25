@@ -30,9 +30,6 @@ class Environment:
 		self.cwd = os.getcwd()
 		return None
 
-	def get_basepath(self):
-		return self._basepath
-
 	def get_pythonpath(self):
 		return sys.path
 

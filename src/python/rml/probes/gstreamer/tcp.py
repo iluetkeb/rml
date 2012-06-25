@@ -1,4 +1,4 @@
-from .. import Probe, ProbeConfigurationException
+from rml.probes import Probe, ProbeConfigurationException
 
 import gobject
 import pygst
@@ -14,6 +14,9 @@ _initialized = False
 class TCPProbe(Probe):
 	__KEY_HOST = "host"
 	__KEY_PORT = "port"
+	__KEY_CONTAINER = "container"
+	__KEY_CAPS = "format"
+	'''Format for the file to write. May be 'wav' or 'matroska'.'''
 
 	REQ_CONFIG = [ __KEY_HOST, "%s:int" % __KEY_PORT ]
 	REC_NAME = "receiver"
@@ -22,10 +25,17 @@ class TCPProbe(Probe):
 	def __init__(self, env, cfg):
 		Probe.__init__(self, env, cfg)
 		self.cfg.check_keys(self.REQ_CONFIG)
+		container = cfg.get(self.__KEY_CONTAINER, "wav")
+		caps = cfg.get(self.__KEY_CAPS, None)
 
 		self.pipeline = gst.Pipeline("tcpcapture")
 		src = gst.element_factory_make("tcpclientsrc", self.REC_NAME)
-		wavenc = gst.element_factory_make("wavenc", "towav")
+		if container == "wav":
+			enc = gst.element_factory_make("wavenc", "mux")
+		elif container == "matroska":
+			enc = gst.element_factory_make("matroskamux", "mux")
+		else:
+			raise "Unsupported format %s" % format
 		sink = gst.element_factory_make("filesink", self.WRI_NAME)
 		src.set_property("host", cfg.get(self.__KEY_HOST))
 		src.set_property("port", cfg.get(self.__KEY_PORT))
@@ -33,8 +43,14 @@ class TCPProbe(Probe):
 		src.set_property("protocol", 1)
 		sink.set_property("location", cfg.get_outputlocation())
 		sink.set_property("sync", False)
-		self.pipeline.add(src, wavenc, sink)
-		gst.element_link_many(src, wavenc, sink)
+		if caps is None:
+			self.pipeline.add(src, enc, sink)
+			gst.element_link_many(src, enc, sink)
+		else:
+			caps_elem = gst.element_factory_make("capsfilter")
+			caps_elem.set_property("caps", caps)
+			self.pipeline.add(src, caps_elem, enc, sink)
+			gst.element_link_many(src, caps_elem, enc, sink)
 
 		self.bus = self.pipeline.get_bus()
 		self.bus.add_signal_watch()

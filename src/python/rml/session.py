@@ -8,7 +8,7 @@ class RMLStateException(Exception):
 		self.value = value
 
 	def __str__(self):
-		return repr(value)
+		return repr(self.value)
 
 def cfg_defaults(cfg_dir=None, cfg_filename=None):
 	if not cfg_dir:

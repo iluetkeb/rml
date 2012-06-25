@@ -1,4 +1,4 @@
-from .. import Probe, ProbeConfigurationException
+from rml.probes import Probe, ProbeConfigurationException
 
 import subprocess, signal
 import os

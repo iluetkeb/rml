@@ -4,6 +4,9 @@ all:
 clean:
 	$(PYTHON) setup.py clean
 
-install:
+check:
+	PYTHONPATH=$(PYTHONPATH):. find rml -name '*.py' | grep -v setup.py | grep -v __init__| xargs pychecker
+
+install: check
 	@mkdir -p @PYTHONLIBDIR@
 	PYTHONPATH=$(PYTHONPATH):@PYTHONLIBDIR@ $(PYTHON) setup.py install --prefix "$(prefix)"

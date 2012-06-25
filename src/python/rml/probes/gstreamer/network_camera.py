@@ -1,4 +1,4 @@
-from .. import Probe, ProbeConfigurationException
+from rml.probes import Probe, ProbeConfigurationException
 
 import gobject
 import pygst
@@ -68,7 +68,7 @@ class H264NetworkCameraProbe(Probe):
 			raise ProbeConfigurationException("Could not start gstreamer network camera probe -- try again with GST_DEBUG=2 to get an error message.")
 	
 	def do_stop(self):
-		self.player.set_state(gst.STATE_NULL)
+		self.pipeline.set_state(gst.STATE_NULL)
 
 	def is_alive(self):
 		return Probe.is_alive(self) and self.pipeline.get_state()[1] == gst.STATE_PLAYING
