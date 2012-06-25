@@ -87,7 +87,7 @@ class Configuration:
     def update(self):
         f = file(self.conf_source, "w")
         try:
-            json.dump({'rml_cfg': self.rml_config}, f)
+            json.dump({'rml_cfg': self.rml_config}, f, indent=4)
         finally:
             f.close()
 
