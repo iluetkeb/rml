@@ -4,7 +4,7 @@ all:
 clean:
 	$(PYTHON) setup.py clean
 
-check:
+pycheck:
 	PYTHONPATH=$(PYTHONPATH):. find rml -name '*.py' | grep -v setup.py | grep -v __init__| xargs pychecker
 
 install: check
