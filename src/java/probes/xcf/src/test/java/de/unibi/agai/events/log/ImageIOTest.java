@@ -4,8 +4,6 @@
  */
 package de.unibi.agai.events.log;
 
-import com.sun.media.imageio.plugins.tiff.TIFFCompressor;
-import com.sun.media.imageio.plugins.tiff.TIFFImageWriteParam;
 import java.util.Arrays;
 import java.util.Iterator;
 import javax.imageio.ImageIO;
@@ -15,6 +13,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -47,7 +46,7 @@ public class ImageIOTest {
     // @Test
     // public void hello() {}
     
-    @Test
+    @Ignore @Test
     public void list() {
         String[] mimeTypes = ImageIO.getWriterMIMETypes();
         System.out.println(Arrays.asList(mimeTypes));
@@ -59,8 +58,8 @@ public class ImageIOTest {
                     ImageWriteParam iwp = writer.getDefaultWriteParam();
                     System.out.println(mime + " " + writer + " " + iwp);
                 }
-                TIFFImageWriteParam tiwp;                
-                TIFFCompressor tc;
+                //TIFFImageWriteParam tiwp;                
+                //TIFFCompressor tc;
                 
             }
         }

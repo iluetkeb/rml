@@ -23,8 +23,8 @@ import nu.xom.Nodes;
  *
  * @author iluetkeb
  */
-public class ConvertRunnable implements Runnable {
-    private static final Logger logger = Logger.getLogger(ConvertRunnable.class.getName());
+public class SingleFileConvertRunnable implements Runnable {
+    private static final Logger logger = Logger.getLogger(SingleFileConvertRunnable.class.getName());
     
     private final String baseName;
     private final PublishEvent imageEvent;
@@ -32,7 +32,7 @@ public class ConvertRunnable implements Runnable {
     private final ImageWriter writer;
     private final ImageWriteParam iwp;
     
-    public ConvertRunnable(String baseName, PublishEvent imageEvent, float quality) {
+    public SingleFileConvertRunnable(String baseName, PublishEvent imageEvent, float quality) {
         this.baseName = baseName;
         this.imageEvent = imageEvent;
         writer = ImageIO.getImageWritersByFormatName(
@@ -59,7 +59,7 @@ public class ConvertRunnable implements Runnable {
             ios.close();
             logger.log(Level.FINE, "Wrote image to {0}", imageFile);            
         } catch (Exception ex) {
-            Logger.getLogger(ConvertRunnable.class.getName()).
+            Logger.getLogger(SingleFileConvertRunnable.class.getName()).
                     log(Level.SEVERE, null, ex);
         }
     }

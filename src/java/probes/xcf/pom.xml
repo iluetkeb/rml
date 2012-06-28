@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>de.cit-ec.rml</groupId>
+    <artifactId>XCFImageLogger</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>XCFImageLogger</name>
+    <url>http://opensource.cit-ec.de/projects/rml</url>
+
+    <parent>
+        <groupId>de.unibi.agai</groupId>
+        <artifactId>ai-common</artifactId>
+        <version>1.1</version>
+    </parent>
+    
+     <repositories>
+        <repository>
+            <id>xuggle repo</id>
+            <url>http://xuggle.googlecode.com/svn/trunk/repo/share/java/</url>
+        </repository>
+    </repositories>
+  
+    
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                </configuration>
+            </plugin>
+    </plugins>
+  </build>
+    
+    <scm>
+        <developerConnection>scm:git:https://opensource.cit-ec.de/svn/rml/src/java/probes/xcf/</developerConnection>
+    </scm>
+    <licenses>
+        <license>
+            <name>GPLv3</name>
+            <url>http://www.gnu.org/licenses/gpl.html</url>
+        </license>
+    </licenses>
+    <organization>
+        <name>Applied Informatics Group, Bielefeld University</name>
+        <url>http://aiweb.techfak.uni-bielefeld.de/</url>
+    </organization>
+    <developers>
+        <developer>
+            <id>iluetkeb</id>
+            <name>Ingo Lütkebohle</name>
+            <email>iluetkeb@techfak.uni-bielefeld.de</email>
+            <url>http://ingo.fargonauten.de</url>
+            <roles>
+                <role>architect</role>
+                <role>developer</role>
+            </roles>
+            <timezone>+1</timezone>
+        </developer>
+    </developers>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.sf.xcf</groupId>
+            <artifactId>xcf4j</artifactId>
+            <version>1.3.3</version>
+	    <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.easymock</groupId>
+            <artifactId>easymock</artifactId>
+            <version>3.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.15</version>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>jms</artifactId>
+                    <groupId>javax.jms</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jmxri</artifactId>
+                    <groupId>com.sun.jmx</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jmxtools</artifactId>
+                    <groupId>com.sun.jdmk</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>mail</artifactId>
+                    <groupId>javax.mail</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>xom</groupId>
+            <artifactId>xom</artifactId>
+            <version>1.2.5</version>
+        </dependency>
+        <dependency>
+            <groupId>jaxen</groupId>
+            <artifactId>jaxen</artifactId>
+            <version>1.1.3</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>maven-cobertura-plugin</artifactId>
+                    <groupId>maven-plugins</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>maven-findbugs-plugin</artifactId>
+                    <groupId>maven-plugins</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>de.unibi.agai</groupId>
+            <artifactId>cis4j</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>xuggle</groupId>
+            <artifactId>xuggle-xuggler</artifactId>
+            <version>5.4</version>
+        </dependency>
+    </dependencies>
+</project>

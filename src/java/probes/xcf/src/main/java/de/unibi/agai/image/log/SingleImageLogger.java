@@ -59,7 +59,7 @@ public class SingleImageLogger {
                     if(duration > 500 && size > QUEUE_WARN_SIZE) {
                         logger.log(Level.INFO, "Queue size growing to {0}", size);
                     }
-                    exec.submit(new ConvertRunnable(baseName, event, quality));
+                    exec.submit(new SingleFileConvertRunnable(baseName, event, quality));
                     int cur = count.incrementAndGet();
                     if((cur % 100) == 0) {
                         logger.log(Level.INFO, "Logged {0} images to {1} in {2}ms ({3}/s)", 
