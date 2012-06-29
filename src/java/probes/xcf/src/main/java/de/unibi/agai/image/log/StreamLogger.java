@@ -10,7 +10,9 @@ import com.xuggle.xuggler.*;
 import de.unibi.agai.cis.ImageDecoder;
 import de.unibi.agai.cis.ImageProvider;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -228,6 +230,7 @@ public class StreamLogger implements Runnable {
 
             startTime = img.getTimeStamp();
             IMetaData md = writer.getContainer().getMetaData();
+            md.setValue("CREATION_TIME", new SimpleDateFormat("yyyy-mm-dd HH:mm:ss").format(new Date(startTime)));
             md.setValue("STREAM_START_TIME", Long.toString(startTime));
             writer.getContainer().setMetaData(md);
 
