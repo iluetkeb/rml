@@ -37,11 +37,8 @@ public class StreamLogger implements Runnable {
     private final ExecutorService inputProcessing;
     private final XcfManager xm;
     private final Subscriber s;
-    private final  StreamWriter sw;
+    private final StreamWriter sw;
     private final ImageDecoder decoder = new ImageDecoder();
-    private IConverter converter = null;
-
-
     
     public StreamLogger(String publisherName, String filename) throws
             InitializeException, NameNotFoundException, IOException {
@@ -54,7 +51,7 @@ public class StreamLogger implements Runnable {
                                 getTimeStamp());
                     }
                 });
-        inputProcessing = Executors.newSingleThreadExecutor();//Executors.newFixedThreadPool(4);
+        inputProcessing = Executors.newFixedThreadPool(4);
 
         xm = XcfManager.createXcfManager();
         s = xm.createSubscriber(publisherName);
@@ -105,7 +102,6 @@ public class StreamLogger implements Runnable {
             System.out.println("Registering image listener on " + args[0]);
             
             final Thread t = new Thread(sl);
-            t.start();
             
             Runtime.getRuntime().addShutdownHook(new Thread() {
 
@@ -116,8 +112,12 @@ public class StreamLogger implements Runnable {
                 }
             });
             
+            t.start();
+            Thread.yield();
+            
+            System.out.println("Waiting for termination signal.");
             t.join();
-
+            System.out.println("Stream coding done.");
         } catch (IOException ex) {
             Logger.getLogger(StreamLogger.class.getName()).
                     log(Level.SEVERE, null, ex);
@@ -135,20 +135,9 @@ public class StreamLogger implements Runnable {
         System.exit(0);
     }
     
-//    private synchronized void setupConverter(BufferedImage img) {
-//        if (converter != null) {
-//            return;
-//        }
-//        logger.log(Level.INFO, "Setting up converter for image {0}", img);
-//        converter = ConverterFactory.createConverter(img,
-//                IPixelFormat.Type.YUV420P);
-//    }
-
     private class StreamWriter implements Runnable {
 
         private final BlockingQueue<IVideoPicture> picQueue;
-        private IStreamCoder coder;
-        private final int bitrate;
         private final IMediaWriter writer;
         private boolean streamSetupDone = false;
 
@@ -156,8 +145,7 @@ public class StreamLogger implements Runnable {
                 String filename,
                 int bitrate) throws IOException {
             this.picQueue = evQueue;
-            this.bitrate = bitrate;
-
+            
             writer = ToolFactory.makeWriter(filename);
         }
 
@@ -195,25 +183,6 @@ public class StreamLogger implements Runnable {
             IStreamCoder coder = writer.getContainer().getStream(0).getStreamCoder();
             coder.setPixelType(img.getPixelType());
             streamSetupDone = true;
-
-
-//            if (coder != null) {
-//                return;
-//            }
-
-//            coder.setBitRate(bitrate);
-//            coder.setBitRateTolerance(9000);
-//            coder.setPixelType(IPixelFormat.Type.YUV420P); 
-//            coder.setWidth(img.getWidth());
-//            coder.setHeight(img.getHeight());
-//            coder.setTimeBase(IRational.make(3,1));
-//            
-//            int ret = coder.open();
-//            if (ret < 0) {
-//                throw new RuntimeException("Cannot configure coder: " + ret);
-//            }
-//
-//            container.writeHeader();
         }
     }
 
@@ -237,8 +206,6 @@ public class StreamLogger implements Runnable {
                 IVideoPicture pic = spec.createPicture(availablePics.poll());                
                 // make spec available for reclaim immediately
                 spec = null;                
-                //FIXME
-                pic.setTimeStamp(System.currentTimeMillis() * 1000);
                 outQueue.put(pic);                
                 logger.log(Level.FINE, "Added pic {0} to encoder queue", pic);
             } catch (InterruptedException ex) {
@@ -248,26 +215,6 @@ public class StreamLogger implements Runnable {
                 Logger.getLogger(StreamLogger.class.getName()).
                         log(Level.SEVERE, null, ex);
             }
-        }
-
-        private BufferedImage convertToType(BufferedImage sourceImage,
-                int targetType) {
-            BufferedImage image;
-
-            // if the source image is already the target type, return the source image
-
-            if (sourceImage.getType() == targetType) {
-                image = sourceImage;
-            } // otherwise create a new image of the target type and draw the new
-            // image 
-            else {
-                image = new BufferedImage(sourceImage.getWidth(), sourceImage.
-                        getHeight(),
-                        targetType);
-                image.getGraphics().drawImage(sourceImage, 0, 0, null);
-            }
-
-            return image;
         }
     }
 }

@@ -37,9 +37,11 @@ public class ImageDecoder {
     private final String CS_GRAY = "gray";
 
     private static XPath imageXPath;
+    private static XPath millisXPath;
     static {
         try {
             imageXPath = new XOMXPath("//IMAGE");
+            millisXPath = new XOMXPath("TIMESTAMP/CREATED/@ms");
         } catch (JaxenException ex) {
             Logger.getLogger(ImageDecoder.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -60,6 +62,7 @@ public class ImageDecoder {
     public ImageProvider decode(XOPData xd) {
         // find metadata
         try {
+            //System.out.println(xd.getDocumentAsText());
             Document d = xd.getDocument();
             Element imageElement = (Element) imageXPath.selectSingleNode(d);
             String uri = imageElement.getAttributeValue(imageURIAttrName);
@@ -87,18 +90,21 @@ public class ImageDecoder {
             if(!(nplanes == 1 || nplanes == 3)) 
                 throw new IllegalArgumentException("Expected 1 or 3 planes, not " + nplanes);
 
+            final long timestamp = Long.parseLong(millisXPath.stringValueOf(imageElement));
+            
             // get attachment
             Attachment imagePacket = xd.getAttachment(uri);
             
             final int expectedSize = width * height * nplanes;
             if(imagePacket.getValue().length == expectedSize) {
                 return new ImageProvider(width, height, uri, 
-                        imagePacket.getValue(), 0, ptype);
+                        imagePacket.getValue(), 0, ptype, timestamp);
             } else {
                 // old-school packet with meta-data header
                 return new ImageProvider(width, height, uri, 
                         imagePacket.getValue(), 
-                        imagePacket.getValue().length - expectedSize, ptype);
+                        imagePacket.getValue().length - expectedSize, ptype, 
+                        timestamp);
             }
         } catch(Exception ex) {
             // this happens when an element or attribute that is required is 

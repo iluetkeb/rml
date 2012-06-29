@@ -26,6 +26,7 @@ public class ImageProvider {
     private final byte[] pixelData;
     private final int offset;
     private final PlaneType ptype;
+    private final long timestamp;
     
     private static final ColorModel cm;
     
@@ -44,7 +45,7 @@ public class ImageProvider {
      * @param ptype How pixels are organized in pixelData. 
      */
     public ImageProvider(int width, int height, String uri, 
-            byte[] pixelData, int offset, PlaneType ptype) {
+            byte[] pixelData, int offset, PlaneType ptype, long timestamp) {
         this.width = width;
         this.height = height;
         this.nplanes = PlaneType.getNumPlanes(ptype);
@@ -52,6 +53,7 @@ public class ImageProvider {
         this.pixelData = pixelData;
         this.offset = offset;
         this.ptype = ptype;
+        this.timestamp = timestamp;
         numPixels = width * height * nplanes;
     }
     
@@ -79,6 +81,10 @@ public class ImageProvider {
     /** Returns number of planes. */
     public final int getNumPlanes() {
         return nplanes;
+    }
+    
+    public long getCaptureTimeMillis() {
+        return timestamp;
     }
     
     public IVideoPicture createPicture(IVideoPicture pic) {
@@ -154,15 +160,17 @@ public class ImageProvider {
     }
     
     protected IVideoPicture configurePic(IVideoPicture pic, IPixelFormat.Type type) {
+        IVideoPicture result = pic;
         if(pic == null || pic.getPixelType() != type || 
                 pic.getWidth() != width || pic.getHeight() != height)
             // NOTE: we could do this much more efficiently (by passing a
             // reference) if the underlying data would already be in a DIRECT
             // byte buffer. this would require a middleware change, though
-            return IVideoPicture.make(type, width, height);
-        else {
-            return pic;
-        }
+            result = IVideoPicture.make(type, width, height);
+        
+        result.setTimeStamp(getCaptureTimeMillis() * 1000);
+        
+        return result;
     }
 
     private IVideoPicture createPictureFromGray(IVideoPicture pic) {
