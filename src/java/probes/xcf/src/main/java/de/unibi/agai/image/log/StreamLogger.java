@@ -39,7 +39,7 @@ public class StreamLogger implements Runnable {
     private final Subscriber s;
     private final StreamWriter sw;
     private final ImageDecoder decoder = new ImageDecoder();
-    
+
     public StreamLogger(String publisherName, String filename) throws
             InitializeException, NameNotFoundException, IOException {
         queue =
@@ -57,7 +57,7 @@ public class StreamLogger implements Runnable {
         s = xm.createSubscriber(publisherName);
 
         sw = new StreamWriter(queue, filename, 20000);
-        
+
     }
 
     public void run() {
@@ -76,18 +76,19 @@ public class StreamLogger implements Runnable {
 
         try {
             t.join();
-        } catch(InterruptedException ex) {
+        } catch (InterruptedException ex) {
             logger.log(Level.INFO, "Shutting down orderly.");
-            s.removeListener(l);            
+            s.removeListener(l);
             t.interrupt();
             try {
                 t.join();
-            } catch(InterruptedException ex2) {
-                logger.log(Level.WARNING, "Regular shutdown interrupted, terminating prematurely");
+            } catch (InterruptedException ex2) {
+                logger.log(Level.WARNING,
+                        "Regular shutdown interrupted, terminating prematurely");
             }
         }
     }
-    
+
     public static void main(String[] args) throws InterruptedException {
         if (args.length < 2) {
             System.err.println(
@@ -100,9 +101,9 @@ public class StreamLogger implements Runnable {
             StreamLogger sl = new StreamLogger(args[0], args[1]);
 
             System.out.println("Registering image listener on " + args[0]);
-            
+
             final Thread t = new Thread(sl);
-            
+
             Runtime.getRuntime().addShutdownHook(new Thread() {
 
                 @Override
@@ -111,10 +112,10 @@ public class StreamLogger implements Runnable {
                     t.interrupt();
                 }
             });
-            
+
             t.start();
             Thread.yield();
-            
+
             System.out.println("Waiting for termination signal.");
             t.join();
             System.out.println("Stream coding done.");
@@ -134,7 +135,7 @@ public class StreamLogger implements Runnable {
 
         System.exit(0);
     }
-    
+
     private class StreamWriter implements Runnable {
 
         private final BlockingQueue<IVideoPicture> picQueue;
@@ -145,7 +146,7 @@ public class StreamLogger implements Runnable {
                 String filename,
                 int bitrate) throws IOException {
             this.picQueue = evQueue;
-            
+
             writer = ToolFactory.makeWriter(filename);
         }
 
@@ -159,19 +160,33 @@ public class StreamLogger implements Runnable {
                         Thread.sleep(100);
                         continue picloop;
                     }
-
-                    IVideoPicture frame = picQueue.take();
-                    setupCoder(frame);
-                    frame.setQuality(0);
-                    writer.encodeVideo(0, frame);
-                    
-                    // attempt to provide this frame for reuse
-                    availablePics.offer(frame);
+                    encodeNext();
                 }
             } catch (InterruptedException ex) {
-                logger.log(Level.INFO, "Closing container");
+                logger.log(Level.INFO, "Shutting down 1: Consuming backlog");
+                try {
+                    while (!picQueue.isEmpty()) {
+                        encodeNext();
+                    }
+                } catch (InterruptedException ex1) {
+                    logger.log(Level.WARNING, "Backlog encoding has been " +
+                            "interrupted. Last few images from the stream " +
+                            "will be missing");
+                }
+                logger.log(Level.INFO, "Shutting down 2:Closing container");
                 writer.close();
             }
+        }
+
+        protected void encodeNext() throws InterruptedException {
+            IVideoPicture frame = picQueue.take();
+            setupCoder(frame);
+            frame.setQuality(0);
+            writer.encodeVideo(0, frame);
+
+            // attempt to provide this frame for reuse
+            availablePics.offer(frame);
+
         }
 
         protected void setupCoder(IVideoPicture img) {
@@ -180,14 +195,15 @@ public class StreamLogger implements Runnable {
             }
             writer.addVideoStream(0, 0, ICodec.ID.CODEC_ID_H264, null, img.
                     getWidth(), img.getHeight());
-            IStreamCoder coder = writer.getContainer().getStream(0).getStreamCoder();
+            IStreamCoder coder = writer.getContainer().getStream(0).
+                    getStreamCoder();
             coder.setPixelType(img.getPixelType());
             streamSetupDone = true;
         }
     }
+    private final BlockingQueue<IVideoPicture> availablePics =
+            new ArrayBlockingQueue<IVideoPicture>(10);
 
-    private final BlockingQueue<IVideoPicture> availablePics = new ArrayBlockingQueue<IVideoPicture>(10);
-    
     private class ImageConverter implements Runnable {
 
         private final BlockingQueue<IVideoPicture> outQueue;
@@ -203,10 +219,10 @@ public class StreamLogger implements Runnable {
             try {
                 logger.log(Level.FINE, "Received event {0} for conversion", evt);
                 ImageProvider spec = decoder.decode(evt.getData());
-                IVideoPicture pic = spec.createPicture(availablePics.poll());                
+                IVideoPicture pic = spec.createPicture(availablePics.poll());
                 // make spec available for reclaim immediately
-                spec = null;                
-                outQueue.put(pic);                
+                spec = null;
+                outQueue.put(pic);
                 logger.log(Level.FINE, "Added pic {0} to encoder queue", pic);
             } catch (InterruptedException ex) {
                 Logger.getLogger(StreamLogger.class.getName()).
