@@ -4,19 +4,17 @@
  */
 package de.unibi.agai.image.log;
 
+import com.xuggle.mediatool.IMediaWriter;
+import com.xuggle.mediatool.ToolFactory;
 import com.xuggle.xuggler.*;
 import com.xuggle.xuggler.video.ConverterFactory;
 import com.xuggle.xuggler.video.IConverter;
 import de.unibi.agai.cis.ImageDecoder;
 import de.unibi.agai.cis.ImageProvider;
 import java.awt.image.BufferedImage;
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.Comparator;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.sf.xcf.InitializeException;
@@ -24,24 +22,30 @@ import net.sf.xcf.Subscriber;
 import net.sf.xcf.XcfManager;
 import net.sf.xcf.event.PublishEvent;
 import net.sf.xcf.event.PublishEventAdapter;
+import net.sf.xcf.event.PublishEventListener;
 import net.sf.xcf.naming.NameNotFoundException;
 
 /**
  *
  * @author iluetkeb
  */
-public class StreamLogger {
-    private static final Logger logger = Logger.getLogger(StreamLogger.class.getName());
+public class StreamLogger implements Runnable {
+
+    private static final Logger logger = Logger.getLogger(StreamLogger.class.
+            getName());
+    private final PriorityBlockingQueue<IVideoPicture> queue;
+    private final ExecutorService inputProcessing;
+    private final XcfManager xm;
+    private final Subscriber s;
+    private final  StreamWriter sw;
+    private final ImageDecoder decoder = new ImageDecoder();
+    private IConverter converter = null;
+
+
     
-
-    public static void main(String[] args) throws InterruptedException {
-        if (args.length < 2) {
-            System.err.println(
-                    "Syntax: StreamLogger <publisher-name> <stream-name> [bitrate]");
-            System.exit(-1);
-        }
-
-        final PriorityBlockingQueue<IVideoPicture> queue =
+    public StreamLogger(String publisherName, String filename) throws
+            InitializeException, NameNotFoundException, IOException {
+        queue =
                 new PriorityBlockingQueue<IVideoPicture>(100,
                 new Comparator<IVideoPicture>() {
 
@@ -50,41 +54,69 @@ public class StreamLogger {
                                 getTimeStamp());
                     }
                 });
-        final ExecutorService inputProcessing = Executors.newFixedThreadPool(4);
+        inputProcessing = Executors.newSingleThreadExecutor();//Executors.newFixedThreadPool(4);
+
+        xm = XcfManager.createXcfManager();
+        s = xm.createSubscriber(publisherName);
+
+        sw = new StreamWriter(queue, filename, 20000);
+        
+    }
+
+    public void run() {
+        PublishEventListener l = new PublishEventAdapter() {
+
+            @Override
+            public void handleEvent(PublishEvent event) {
+                //System.err.print("H");
+                inputProcessing.submit(new ImageConverter(queue, event));
+            }
+        };
+        s.addListener(l);
+
+        final Thread t = new Thread(sw);
+        t.start();
 
         try {
-            final XcfManager xm = XcfManager.createXcfManager();
-            final Subscriber s = xm.createSubscriber(args[0]);
-            final String baseName = args[1];
+            t.join();
+        } catch(InterruptedException ex) {
+            logger.log(Level.INFO, "Shutting down orderly.");
+            s.removeListener(l);            
+            t.interrupt();
+            try {
+                t.join();
+            } catch(InterruptedException ex2) {
+                logger.log(Level.WARNING, "Regular shutdown interrupted, terminating prematurely");
+            }
+        }
+    }
+    
+    public static void main(String[] args) throws InterruptedException {
+        if (args.length < 2) {
+            System.err.println(
+                    "Syntax: StreamLogger <publisher-name> <stream-name> [bitrate]");
+            System.exit(-1);
+        }
+
+
+        try {
+            StreamLogger sl = new StreamLogger(args[0], args[1]);
 
             System.out.println("Registering image listener on " + args[0]);
-            final long start = System.currentTimeMillis();
-            s.addListener(new PublishEventAdapter() {
+            
+            final Thread t = new Thread(sl);
+            t.start();
+            
+            Runtime.getRuntime().addShutdownHook(new Thread() {
 
                 @Override
-                public void handleEvent(PublishEvent event) {
-                    inputProcessing.submit(new ImageConverter(queue, event));
+                public void run() {
+                    logger.log(Level.INFO, "Received SIGTERM, shutting down.");
+                    t.interrupt();
                 }
             });
-
-            StreamWriter sw = null;
-            try {
-                sw = new StreamWriter(queue, args[1], 20000);
-                final Thread t = new Thread(sw);
-                t.start();
-
-                Runtime.getRuntime().addShutdownHook(new Thread() {
-
-                    @Override
-                    public void run() {
-                        t.interrupt();
-                    }
-                });
-                t.join();
-            } finally {
-                if(sw != null)
-                    sw.close();
-            }
+            
+            t.join();
 
         } catch (IOException ex) {
             Logger.getLogger(StreamLogger.class.getName()).
@@ -102,24 +134,23 @@ public class StreamLogger {
 
         System.exit(0);
     }
-    private static final ImageDecoder decoder = new ImageDecoder();
-    static IConverter converter = null;
+    
+//    private synchronized void setupConverter(BufferedImage img) {
+//        if (converter != null) {
+//            return;
+//        }
+//        logger.log(Level.INFO, "Setting up converter for image {0}", img);
+//        converter = ConverterFactory.createConverter(img,
+//                IPixelFormat.Type.YUV420P);
+//    }
 
-    private static synchronized void setupConverter(BufferedImage img) {
-        if (converter != null) {
-            return;
-        }
-        converter = ConverterFactory.createConverter(img,
-                IPixelFormat.Type.YUV420P);
-    }
-
-    private static class StreamWriter implements Runnable, Closeable {
+    private class StreamWriter implements Runnable {
 
         private final BlockingQueue<IVideoPicture> picQueue;
-        private final IContainer container;
-        private final IStream stream;
         private IStreamCoder coder;
         private final int bitrate;
+        private final IMediaWriter writer;
+        private boolean streamSetupDone = false;
 
         public StreamWriter(BlockingQueue<IVideoPicture> evQueue,
                 String filename,
@@ -127,16 +158,11 @@ public class StreamLogger {
             this.picQueue = evQueue;
             this.bitrate = bitrate;
 
-            container = IContainer.make();
-            if (container.open(filename, IContainer.Type.WRITE, null) < 0) {
-                throw new IOException("Cannot open output file " + filename);
-            }
-            stream = container.addNewStream(ICodec.ID.CODEC_ID_H264);
+            writer = ToolFactory.makeWriter(filename);
         }
 
         public void run() {
             try {
-                IPacket packet = IPacket.make(1048576);
                 picloop:
                 while (true) {
                     // let the priority queue do its sorting by keeping something
@@ -145,51 +171,55 @@ public class StreamLogger {
                         Thread.sleep(100);
                         continue picloop;
                     }
+
                     IVideoPicture frame = picQueue.take();
                     setupCoder(frame);
                     frame.setQuality(0);
-                    coder.encodeVideo(packet, frame, 0);
-                    System.err.print(".");
+                    writer.encodeVideo(0, frame);
                     
-                    if (packet.isComplete()) {
-                        container.writePacket(packet);
-                        packet.reset();
-                        logger.log(Level.INFO, "Writing packet");
-                    } 
+                    // attempt to provide this frame for reuse
+                    availablePics.offer(frame);
                 }
             } catch (InterruptedException ex) {
                 logger.log(Level.INFO, "Closing container");
-                container.writeTrailer();
-                container.close();
+                writer.close();
             }
         }
 
         protected void setupCoder(IVideoPicture img) {
-            if (coder != null) {
+            if (streamSetupDone) {
                 return;
             }
-            coder = stream.getStreamCoder();
-            coder.setBitRate(bitrate);
-            coder.setBitRateTolerance(9000);
-            coder.setPixelType(IPixelFormat.Type.YUV420P); 
-            coder.setWidth(img.getWidth());
-            coder.setHeight(img.getHeight());
-            coder.setTimeBase(IRational.make(3,1));
-            
-            int ret = coder.open();
-            if (ret < 0) {
-                throw new RuntimeException("Cannot configure coder: " + ret);
-            }
+            writer.addVideoStream(0, 0, ICodec.ID.CODEC_ID_H264, null, img.
+                    getWidth(), img.getHeight());
+            IStreamCoder coder = writer.getContainer().getStream(0).getStreamCoder();
+            coder.setPixelType(img.getPixelType());
+            streamSetupDone = true;
 
-            container.writeHeader();
-        }
 
-        public void close() throws IOException {
-            container.close();
+//            if (coder != null) {
+//                return;
+//            }
+
+//            coder.setBitRate(bitrate);
+//            coder.setBitRateTolerance(9000);
+//            coder.setPixelType(IPixelFormat.Type.YUV420P); 
+//            coder.setWidth(img.getWidth());
+//            coder.setHeight(img.getHeight());
+//            coder.setTimeBase(IRational.make(3,1));
+//            
+//            int ret = coder.open();
+//            if (ret < 0) {
+//                throw new RuntimeException("Cannot configure coder: " + ret);
+//            }
+//
+//            container.writeHeader();
         }
     }
 
-    private static class ImageConverter implements Runnable {
+    private final BlockingQueue<IVideoPicture> availablePics = new ArrayBlockingQueue<IVideoPicture>(10);
+    
+    private class ImageConverter implements Runnable {
 
         private final BlockingQueue<IVideoPicture> outQueue;
         private final PublishEvent evt;
@@ -202,16 +232,19 @@ public class StreamLogger {
 
         public void run() {
             try {
-                final ImageProvider spec = decoder.decode(evt.getData());
-                final BufferedImage img =
-                        convertToType(spec.createBufferedImage(null),
-                        BufferedImage.TYPE_3BYTE_BGR);
-
-                setupConverter(img);
-                // FIXME: set up proper timestamp
-                outQueue.put(converter.toPicture(img, System.currentTimeMillis() *
-                        1000));
+                logger.log(Level.FINE, "Received event {0} for conversion", evt);
+                ImageProvider spec = decoder.decode(evt.getData());
+                IVideoPicture pic = spec.createPicture(availablePics.poll());                
+                // make spec available for reclaim immediately
+                spec = null;                
+                //FIXME
+                pic.setTimeStamp(System.currentTimeMillis() * 1000);
+                outQueue.put(pic);                
+                logger.log(Level.FINE, "Added pic {0} to encoder queue", pic);
             } catch (InterruptedException ex) {
+                Logger.getLogger(StreamLogger.class.getName()).
+                        log(Level.SEVERE, null, ex);
+            } catch (Exception ex) {
                 Logger.getLogger(StreamLogger.class.getName()).
                         log(Level.SEVERE, null, ex);
             }
