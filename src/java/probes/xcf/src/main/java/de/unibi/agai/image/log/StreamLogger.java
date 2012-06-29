@@ -156,7 +156,7 @@ public class StreamLogger implements Runnable {
                 while (true) {
                     // let the priority queue do its sorting by keeping something
                     // in it at all times
-                    if (picQueue.size() < 5) {
+                    if (picQueue.size() < 30) {
                         Thread.sleep(100);
                         continue picloop;
                     }
