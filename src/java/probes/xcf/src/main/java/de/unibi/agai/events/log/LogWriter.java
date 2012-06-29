@@ -8,11 +8,10 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import nu.xom.Document;
 
 /**
@@ -20,7 +19,9 @@ import nu.xom.Document;
  * @author iluetkeb
  */
 class LogWriter {
-
+    private static final Logger logger = Logger.getLogger(LogWriter.
+            class.getName());
+    
     private final AtomicLong sequence = new AtomicLong();
     private final ExecutorService writer = Executors.newSingleThreadExecutor();
     private final PrintWriter w;
@@ -54,9 +55,16 @@ class LogWriter {
 
 
     public Future log(long millis, long nanos, String name, Document d) {
-        Future f = writer.submit(new FormatCallable(millis, nanos, name, d));
-        flast = f; // this is not safe in general, but useful for testing
-        return f;
+        try {
+            Future f = writer.submit(new FormatCallable(millis, nanos, name, d));
+            flast = f; // this is not safe in general, but useful for testing
+            return f;
+        } catch(RejectedExecutionException ex) {
+            logger.log(Level.INFO, "Received log message while shutdown " +
+                    "is in progress, will not be logged");
+            // ignore, being shut down
+        }
+        return null;
     }    
     
     Future getLast() {
