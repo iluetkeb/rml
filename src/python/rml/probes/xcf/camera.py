@@ -13,7 +13,7 @@ class XCFImageProbe(Probe):
 		self.proc = None
 		self.location = cfg.get_outputlocation()
 		self.publisher = cfg.get(self.__KEY_PUBLISHER)
-		if self.locations.find(".mkv") != -1:
+		if self.location.find(".mkv") != -1:
 			self.cmd = "xcf_stream_logger"
 			self.dircreate = False
 		else:
