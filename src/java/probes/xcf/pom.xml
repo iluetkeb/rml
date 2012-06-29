@@ -55,6 +55,13 @@
                                 <platform>unix</platform>
                             </platforms> 
                         </program>                        
+                        <program>
+                            <mainClass>de.unibi.agai.log.LogAll</mainClass>
+                            <name>xcf_event_logger</name>
+                            <platforms>
+                                <platform>unix</platform>
+                            </platforms> 
+                        </program>                        
                     </programs>
                 </configuration>
             </plugin>
