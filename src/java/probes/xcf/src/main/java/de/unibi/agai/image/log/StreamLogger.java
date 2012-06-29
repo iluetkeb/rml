@@ -7,11 +7,8 @@ package de.unibi.agai.image.log;
 import com.xuggle.mediatool.IMediaWriter;
 import com.xuggle.mediatool.ToolFactory;
 import com.xuggle.xuggler.*;
-import com.xuggle.xuggler.video.ConverterFactory;
-import com.xuggle.xuggler.video.IConverter;
 import de.unibi.agai.cis.ImageDecoder;
 import de.unibi.agai.cis.ImageProvider;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.concurrent.*;
@@ -24,6 +21,8 @@ import net.sf.xcf.event.PublishEvent;
 import net.sf.xcf.event.PublishEventAdapter;
 import net.sf.xcf.event.PublishEventListener;
 import net.sf.xcf.naming.NameNotFoundException;
+import sun.misc.Signal;
+import sun.misc.SignalHandler;
 
 /**
  *
@@ -65,8 +64,7 @@ public class StreamLogger implements Runnable {
 
             @Override
             public void handleEvent(PublishEvent event) {
-                //System.err.print("H");
-                inputProcessing.submit(new ImageConverter(queue, event));
+                new ImageConverter(queue, event).run();
             }
         };
         s.addListener(l);
@@ -89,6 +87,11 @@ public class StreamLogger implements Runnable {
         }
     }
 
+    protected void shutdown(Thread t) {
+        logger.log(Level.INFO, "Received SIGTERM, shutting down.");
+        t.interrupt();
+    }
+
     public static void main(String[] args) throws InterruptedException {
         if (args.length < 2) {
             System.err.println(
@@ -98,18 +101,27 @@ public class StreamLogger implements Runnable {
 
 
         try {
-            StreamLogger sl = new StreamLogger(args[0], args[1]);
+            final StreamLogger sl = new StreamLogger(args[0], args[1]);
 
             System.out.println("Registering image listener on " + args[0]);
 
             final Thread t = new Thread(sl);
 
+            SignalHandler h = new SignalHandler() {
+                public void handle(Signal sig) {
+                    logger.log(Level.INFO, "Signal {0}", sig.getName());
+                    sl.shutdown(t);
+                }
+            };
+            Signal.handle(new Signal("INT"), h);
+            Signal.handle(new Signal("TERM"), h);
+
+
             Runtime.getRuntime().addShutdownHook(new Thread() {
 
                 @Override
                 public void run() {
-                    logger.log(Level.INFO, "Received SIGTERM, shutting down.");
-                    t.interrupt();
+                    sl.shutdown(t);
                 }
             });
 
@@ -141,6 +153,7 @@ public class StreamLogger implements Runnable {
         private final BlockingQueue<IVideoPicture> picQueue;
         private final IMediaWriter writer;
         private boolean streamSetupDone = false;
+        private long startTime = 0, lastSeen = 0;
 
         public StreamWriter(BlockingQueue<IVideoPicture> evQueue,
                 String filename,
@@ -173,7 +186,7 @@ public class StreamLogger implements Runnable {
                             "interrupted. Last few images from the stream " +
                             "will be missing");
                 }
-                logger.log(Level.INFO, "Shutting down 2:Closing container");
+                logger.log(Level.INFO, "Shutting down 2: Closing container");
                 writer.close();
             }
         }
@@ -181,12 +194,26 @@ public class StreamLogger implements Runnable {
         protected void encodeNext() throws InterruptedException {
             IVideoPicture frame = picQueue.take();
             setupCoder(frame);
+            // move original millisecond timestamp by start offset and make it
+            // microseconds then
+            long timestamp = (frame.getTimeStamp() - startTime) * 1000;
+            logger.log(Level.FINER, "Timestamp: {0}", timestamp);
+            checkLastSeen(timestamp);
+            frame.setTimeStamp(timestamp);
             frame.setQuality(0);
             writer.encodeVideo(0, frame);
 
             // attempt to provide this frame for reuse
             availablePics.offer(frame);
+        }
 
+        protected final void checkLastSeen(long timestamp) {
+            if (timestamp < lastSeen) {
+                logger.log(Level.WARNING, "Out of order timestamp: {0} < {1}",
+                        new Object[]{timestamp, lastSeen});
+            } else {
+                lastSeen = timestamp;
+            }
         }
 
         protected void setupCoder(IVideoPicture img) {
@@ -198,6 +225,12 @@ public class StreamLogger implements Runnable {
             IStreamCoder coder = writer.getContainer().getStream(0).
                     getStreamCoder();
             coder.setPixelType(img.getPixelType());
+
+            startTime = img.getTimeStamp();
+            IMetaData md = writer.getContainer().getMetaData();
+            md.setValue("STREAM_START_TIME", Long.toString(startTime));
+            writer.getContainer().setMetaData(md);
+
             streamSetupDone = true;
         }
     }
