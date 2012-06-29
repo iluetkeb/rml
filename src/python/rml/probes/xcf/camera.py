@@ -11,13 +11,20 @@ class XCFImageProbe(Probe):
 		Probe.__init__(self, env, cfg)
 		self.cfg.check_keys(self.REQ_CONFIG)
 		self.proc = None
-		self.dirname = cfg.get_outputlocation()
+		self.location = cfg.get_outputlocation()
 		self.publisher = cfg.get(self.__KEY_PUBLISHER)
+		if self.locations.find(".mkv") != -1:
+			self.cmd = "xcf_stream_logger"
+			self.dircreate = False
+		else:
+			self.cmd = "xcf_image_logger"
+			self.location = "%s/image" % self.location
+			self.dircreate = True
 
 	def do_start(self):
-		if not os.path.exists(self.dirname):
+		if self.dircreate and not os.path.exists(self.dirname):
 			os.makedirs(self.dirname)
-		cmd = ["java", "-cp", "%s:%s/EventDataLogger.jar" % (self.env.get_classpath(), self.env.get_javabase()), "de.unibi.agai.image.log.SingleImageLogger", self.publisher, "%s/image" % self.dirname, "0.9" ]
+		cmd = [ self.cmd, self.publisher, self.location ]
 		print cmd
 		self.proc = subprocess.Popen(cmd, bufsize=1)
 		if not self.proc:
