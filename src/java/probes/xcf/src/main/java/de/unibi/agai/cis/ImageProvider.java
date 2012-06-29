@@ -168,7 +168,7 @@ public class ImageProvider {
             // byte buffer. this would require a middleware change, though
             result = IVideoPicture.make(type, width, height);
         
-        result.setTimeStamp(getCaptureTimeMillis() * 1000);
+        result.setTimeStamp(getCaptureTimeMillis());
         
         return result;
     }
