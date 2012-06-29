@@ -56,7 +56,7 @@
                             </platforms> 
                         </program>                        
                         <program>
-                            <mainClass>de.unibi.agai.log.LogAll</mainClass>
+                            <mainClass>de.unibi.agai.events.log.LogAll</mainClass>
                             <name>xcf_event_logger</name>
                             <platforms>
                                 <platform>unix</platform>
