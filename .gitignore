@@ -26,3 +26,4 @@ src/python/rml/rml_config.py
 *.mpeg
 *.mp4
 
+/src/java/probes/xcf/target/
