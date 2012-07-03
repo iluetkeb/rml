@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.sf.xcf.InitializeException;
 import net.sf.xcf.XcfManager;
+import org.junit.Test;
 
 /**
  *
@@ -53,6 +54,11 @@ public class TestTools {
         }
     }
 
+    @Test
+    public void doNothing() {
+        
+    }
+    
     private static class DispatcherLogThread extends Thread {
 
         private final BufferedReader reader;
