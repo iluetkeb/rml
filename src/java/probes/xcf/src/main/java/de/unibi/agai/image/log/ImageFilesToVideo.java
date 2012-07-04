@@ -40,7 +40,7 @@ public class ImageFilesToVideo {
         imageDir = new File(baseName).getAbsoluteFile().getParentFile();
         this.baseName = new File(baseName).getName();
 
-        sw = new StreamWriter(availablePics, outputfile, 20000);
+        sw = new StreamWriter(availablePics, outputfile, 20000, 10);
         feedQueue = sw.getInQueue();
     }
 
@@ -90,6 +90,7 @@ public class ImageFilesToVideo {
             encodeThread.start();
             
             IConverter converter = null;
+            int count = 0;
             for (File f : imageFiles) {
                 try {
                     BufferedImage img = convertToType(ImageIO.read(f),
@@ -98,6 +99,20 @@ public class ImageFilesToVideo {
                          converter = ConverterFactory.
                                  createConverter(img, IPixelFormat.Type.YUV420P);
                     feedQueue.put(converter.toPicture(img, getTimestamp(f)));
+                    
+                    // throttle ourselves when feedQueue gets full
+                    if(feedQueue.size() > 100)
+                        Thread.sleep(100);
+                    
+                    // provide some progress output when there is a large 
+                    // number of files to convert
+                    ++count;
+                    if((count % 1000) == 0) {
+                        logger.log(Level.INFO, "Fed {0} images to conversion, " +
+                                "{1}% complete", new Object[]{count, 
+                                    (float)count/(float)imageFiles.length});
+                    }
+                    
                 } catch (InterruptedException ex) {
                     logger.log(Level.INFO, "Interrupted while feeding " +
                             "images, aborting");

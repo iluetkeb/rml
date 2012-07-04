@@ -27,7 +27,18 @@ public class StreamWriter implements Runnable {
     private static final Logger logger = Logger.getLogger(StreamWriter.
             class.getName());
     
-    private final BlockingQueue<IVideoPicture> picQueue =
+    private final BlockingQueue<IVideoPicture> picQueue;
+    private final BlockingQueue<IVideoPicture> availablePics;
+    private final IMediaWriter writer;
+    private boolean streamSetupDone = false;
+    private long startTime = 0;
+    private long lastSeen = 0;
+    private final int minFill;
+
+    public StreamWriter(BlockingQueue<IVideoPicture> availablePics, String filename,
+            int bitrate, int minFill) throws IOException {
+        this.availablePics = availablePics;
+        picQueue =
                 new PriorityBlockingQueue<IVideoPicture>(100,
                 new Comparator<IVideoPicture>() {
 
@@ -35,17 +46,13 @@ public class StreamWriter implements Runnable {
                         return (int) Math.signum(o1.getTimeStamp() - o2.
                                 getTimeStamp());
                     }
-                });;
-    private final BlockingQueue<IVideoPicture> availablePics;
-    private final IMediaWriter writer;
-    private boolean streamSetupDone = false;
-    private long startTime = 0;
-    private long lastSeen = 0;
-
+                });
+        this.minFill = minFill;
+        writer = ToolFactory.makeWriter(filename);
+    }
     public StreamWriter(BlockingQueue<IVideoPicture> availablePics, String filename,
             int bitrate) throws IOException {
-        this.availablePics = availablePics;
-        writer = ToolFactory.makeWriter(filename);
+        this(availablePics, filename, bitrate, 30);
     }
 
     public BlockingQueue<IVideoPicture> getInQueue() {
@@ -58,7 +65,7 @@ public class StreamWriter implements Runnable {
             while (true) {
                 // let the priority queue do its sorting by keeping something
                 // in it at all times
-                if (picQueue.size() < 30) {
+                if (picQueue.size() < minFill) {
                     Thread.sleep(100);
                     continue picloop;
                 }
