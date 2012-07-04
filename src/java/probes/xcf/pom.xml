@@ -63,7 +63,7 @@
                             </platforms> 
                         </program>                        
                         <program>
-                            <mainClass>de.unibi.agai.events.image.log.ImageFilesToVideo</mainClass>
+                            <mainClass>de.unibi.agai.image.log.ImageFilesToVideo</mainClass>
                             <name>files_to_video</name>
                             <platforms>
                                 <platform>unix</platform>
