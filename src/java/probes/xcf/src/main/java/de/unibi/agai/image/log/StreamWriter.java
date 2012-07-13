@@ -24,9 +24,8 @@ import java.util.logging.Logger;
  * @author iluetkeb
  */
 public class StreamWriter implements Runnable {
-    private static final Logger logger = Logger.getLogger(StreamWriter.
-            class.getName());
-    
+
+    private static final Logger logger = Logger.getLogger(StreamWriter.class.getName());
     private final BlockingQueue<IVideoPicture> picQueue;
     private final BlockingQueue<IVideoPicture> availablePics;
     private final IMediaWriter writer;
@@ -34,31 +33,33 @@ public class StreamWriter implements Runnable {
     private long startTime = 0;
     private long lastSeen = 0;
     private final int minFill;
+    private final int codec;
 
     public StreamWriter(BlockingQueue<IVideoPicture> availablePics, String filename,
-            int bitrate, int minFill) throws IOException {
+            int codec, int bitrate, int minFill) throws IOException {
         this.availablePics = availablePics;
         picQueue =
                 new PriorityBlockingQueue<IVideoPicture>(100,
                 new Comparator<IVideoPicture>() {
 
                     public int compare(IVideoPicture o1, IVideoPicture o2) {
-                        return (int) Math.signum(o1.getTimeStamp() - o2.
-                                getTimeStamp());
+                        return (int) Math.signum(o1.getTimeStamp() - o2.getTimeStamp());
                     }
                 });
+        this.codec = codec;
         this.minFill = minFill;
         writer = ToolFactory.makeWriter(filename);
     }
-    public StreamWriter(BlockingQueue<IVideoPicture> availablePics, String filename,
+
+    public StreamWriter(BlockingQueue<IVideoPicture> availablePics, String filename, int codec,
             int bitrate) throws IOException {
-        this(availablePics, filename, bitrate, 30);
+        this(availablePics, filename, codec, bitrate, 30);
     }
 
     public BlockingQueue<IVideoPicture> getInQueue() {
         return picQueue;
     }
-    
+
     public void run() {
         try {
             picloop:
@@ -80,9 +81,9 @@ public class StreamWriter implements Runnable {
                 }
             } catch (InterruptedException ex1) {
                 logger.log(Level.WARNING,
-                        "Backlog encoding has been " +
-                        "interrupted. Last few images from the stream " +
-                        "will be missing");
+                        "Backlog encoding has been "
+                        + "interrupted. Last few images from the stream "
+                        + "will be missing");
             }
             logger.log(Level.INFO,
                     "Shutting down 2: Closing container");
@@ -119,6 +120,20 @@ public class StreamWriter implements Runnable {
         if (streamSetupDone) {
             return;
         }
+        switch (codec) {
+            case 1:
+                writer.addVideoStream(0, 0, ICodec.ID.CODEC_ID_H264, null,
+                        img.getWidth(), img.getHeight());
+                break;
+            case 2:
+                writer.addVideoStream(0, 0, ICodec.ID.CODEC_ID_FFV1, null,
+                        img.getWidth(), img.getHeight());
+                break;
+            default:
+                writer.addVideoStream(0, 0, ICodec.ID.CODEC_ID_H264, null,
+                        img.getWidth(), img.getHeight());
+                break;
+        }
         writer.addVideoStream(0, 0, ICodec.ID.CODEC_ID_H264, null,
                 img.getWidth(), img.getHeight());
         IStreamCoder coder = writer.getContainer().getStream(0).getStreamCoder();
@@ -131,5 +146,4 @@ public class StreamWriter implements Runnable {
         writer.getContainer().setMetaData(md);
         streamSetupDone = true;
     }
-    
 }

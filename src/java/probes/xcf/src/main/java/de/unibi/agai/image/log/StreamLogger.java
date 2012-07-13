@@ -27,8 +27,7 @@ import sun.misc.SignalHandler;
  */
 public class StreamLogger implements Runnable {
 
-    private static final Logger logger = Logger.getLogger(StreamLogger.class.
-            getName());
+    private static final Logger logger = Logger.getLogger(StreamLogger.class.getName());
     private final BlockingQueue<IVideoPicture> queue;
     private final ExecutorService inputProcessing;
     private final XcfManager xm;
@@ -36,14 +35,14 @@ public class StreamLogger implements Runnable {
     private final StreamWriter sw;
     private final ImageDecoder decoder = new ImageDecoder();
 
-    public StreamLogger(String publisherName, String filename) throws
+    public StreamLogger(String publisherName, String filename, int codec) throws
             InitializeException, NameNotFoundException, IOException {
         inputProcessing = Executors.newFixedThreadPool(4);
 
         xm = XcfManager.createXcfManager();
         s = xm.createSubscriber(publisherName);
 
-        sw = new StreamWriter(availablePics, filename, 20000);
+        sw = new StreamWriter(availablePics, filename, codec, 20000);
         queue = sw.getInQueue();
     }
 
@@ -83,19 +82,32 @@ public class StreamLogger implements Runnable {
     public static void main(String[] args) throws InterruptedException {
         if (args.length < 2) {
             System.err.println(
-                    "Syntax: StreamLogger <publisher-name> <stream-name> [bitrate]");
+                    "Syntax: StreamLogger <publisher-name> <stream-name> [codec] [bitrate]");
             System.exit(-1);
         }
 
 
         try {
-            final StreamLogger sl = new StreamLogger(args[0], args[1]);
+            int codec = 1;
+            if (args.length >= 3) {
+                try {
+                    codec = Integer.valueOf(args[2]);
+                } catch (NumberFormatException ex) {
+                    System.err.println(
+                            "Codec argument has to be a number");
+                    Logger.getLogger(StreamLogger.class.getName()).
+                    log(Level.SEVERE, null, ex);
+                    System.exit(-1);
+                }
+            }
+            final StreamLogger sl = new StreamLogger(args[0], args[1], codec);
 
             System.out.println("Registering image listener on " + args[0]);
 
             final Thread t = new Thread(sl);
 
             SignalHandler h = new SignalHandler() {
+
                 public void handle(Signal sig) {
                     logger.log(Level.INFO, "Signal {0}", sig.getName());
                     sl.shutdown(t);
