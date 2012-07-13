@@ -33,10 +33,10 @@ public class StreamWriter implements Runnable {
     private long startTime = 0;
     private long lastSeen = 0;
     private final int minFill;
-    private final int codec;
+    private final ICodec.ID codec;
 
     public StreamWriter(BlockingQueue<IVideoPicture> availablePics, String filename,
-            int codec, int bitrate, int minFill) throws IOException {
+            ICodec.ID codec, int bitrate, int minFill) throws IOException {
         this.availablePics = availablePics;
         picQueue =
                 new PriorityBlockingQueue<IVideoPicture>(100,
@@ -51,7 +51,7 @@ public class StreamWriter implements Runnable {
         writer = ToolFactory.makeWriter(filename);
     }
 
-    public StreamWriter(BlockingQueue<IVideoPicture> availablePics, String filename, int codec,
+    public StreamWriter(BlockingQueue<IVideoPicture> availablePics, String filename, ICodec.ID codec,
             int bitrate) throws IOException {
         this(availablePics, filename, codec, bitrate, 30);
     }
@@ -120,21 +120,7 @@ public class StreamWriter implements Runnable {
         if (streamSetupDone) {
             return;
         }
-        switch (codec) {
-            case 1:
-                writer.addVideoStream(0, 0, ICodec.ID.CODEC_ID_H264, null,
-                        img.getWidth(), img.getHeight());
-                break;
-            case 2:
-                writer.addVideoStream(0, 0, ICodec.ID.CODEC_ID_FFV1, null,
-                        img.getWidth(), img.getHeight());
-                break;
-            default:
-                writer.addVideoStream(0, 0, ICodec.ID.CODEC_ID_H264, null,
-                        img.getWidth(), img.getHeight());
-                break;
-        }
-        writer.addVideoStream(0, 0, ICodec.ID.CODEC_ID_H264, null,
+        writer.addVideoStream(0, 0, codec, null,
                 img.getWidth(), img.getHeight());
         IStreamCoder coder = writer.getContainer().getStream(0).getStreamCoder();
         coder.setPixelType(img.getPixelType());

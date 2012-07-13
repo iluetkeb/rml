@@ -35,7 +35,7 @@ public class StreamLogger implements Runnable {
     private final StreamWriter sw;
     private final ImageDecoder decoder = new ImageDecoder();
 
-    public StreamLogger(String publisherName, String filename, int codec) throws
+    public StreamLogger(String publisherName, String filename, ICodec.ID codec) throws
             InitializeException, NameNotFoundException, IOException {
         inputProcessing = Executors.newFixedThreadPool(4);
 
@@ -88,15 +88,16 @@ public class StreamLogger implements Runnable {
 
 
         try {
-            int codec = 1;
+            ICodec.ID codec = ICodec.ID.CODEC_ID_H264;
             if (args.length >= 3) {
-                if (args[2].equalsIgnoreCase("H264")) {
-                    codec = 1;
-                } else if (args[2].equalsIgnoreCase("FFV1")) {
-                    codec = 2;
-                } else {
+                try {
+                    codec = ICodec.ID.valueOf("CODEC_ID_" + args[2]);
+                } catch (IllegalArgumentException ex) {
                     System.err.println(
-                            "Unknown Codec. Using default codec: H264");
+                            "Invalid codec argument!");
+                    Logger.getLogger(StreamLogger.class.getName()).
+                            log(Level.SEVERE, null, ex);
+                    System.exit(-1);
                 }
             }
             final StreamLogger sl = new StreamLogger(args[0], args[1], codec);
