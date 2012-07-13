@@ -90,14 +90,13 @@ public class StreamLogger implements Runnable {
         try {
             int codec = 1;
             if (args.length >= 3) {
-                try {
-                    codec = Integer.valueOf(args[2]);
-                } catch (NumberFormatException ex) {
+                if (args[2].equalsIgnoreCase("H264")) {
+                    codec = 1;
+                } else if (args[2].equalsIgnoreCase("FFV1")) {
+                    codec = 2;
+                } else {
                     System.err.println(
-                            "Codec argument has to be a number");
-                    Logger.getLogger(StreamLogger.class.getName()).
-                    log(Level.SEVERE, null, ex);
-                    System.exit(-1);
+                            "Unknown Codec. Using default codec: H264");
                 }
             }
             final StreamLogger sl = new StreamLogger(args[0], args[1], codec);
