@@ -227,7 +227,7 @@ public class ImageProvider {
         BufferedImage image = new BufferedImage(bufImg.getWidth(), bufImg.getHeight(),
                 BufferedImage.TYPE_3BYTE_BGR);
         image.getGraphics().drawImage(bufImg, 0, 0, null);
-        IConverter converter = ConverterFactory.createConverter(image, IPixelFormat.Type.RGB24);
+        IConverter converter = ConverterFactory.createConverter(image, IPixelFormat.Type.YUV444P);
         return converter.toPicture(image, timestamp);
 
 //        pic = configurePic(pic, IPixelFormat.Type.RGB24);
