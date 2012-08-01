@@ -127,7 +127,7 @@ public class StreamWriter implements Runnable {
         startTime = img.getTimeStamp();
         IMetaData md = writer.getContainer().getMetaData();
         md.setValue("CREATION_TIME",
-                new SimpleDateFormat("yyyy-mm-dd HH:mm:ss").format(new Date(startTime)));
+                new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date(startTime)));
         md.setValue("STREAM_START_TIME", Long.toString(startTime));
         writer.getContainer().setMetaData(md);
         streamSetupDone = true;
