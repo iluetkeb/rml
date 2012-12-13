@@ -33,12 +33,10 @@ class H264NetworkCameraProbe(Probe):
 			"fps": cfg.get(self.__KEY_FPS)
 		}
 		spec = ""
-		# check whether we need authorization
-		if cfg.get(self.__KEY_USER):
-			spec = "rtspsrc location=\"{url}\" user-id={user} user-pw={pwd} latency=0 name=rtp".format(**args)
-	
-		else:
-			spec = "rtspsrc location=\"{url}\" latency=0 name=rtp".format(**args)
+		spec = "rtspsrc location=\"{url}\" latency=500 name=rtp".format(**args)
+		# add authorization info, if provided
+		if cfg.get(self.__KEY_USER) and cfg.get(self.__KEY_PASSWD):
+			spec += " user-id={user} user-pw={pwd}".format(**args)
 
 		spec += " rtp. ! rtph264depay ! capsfilter caps=\"video/x-h264, width={width}, height={height}, framerate=(fraction){fps}/1\" ! matroskamux name=mux ! filesink location={output} ".format(**args)
 		# add audio, unless disabled
