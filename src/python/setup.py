@@ -11,7 +11,6 @@ setup(
 		'gstreamer': 'gst-python>=0.10',
 		'opencv': 'opencv'
 	},
-	install_requires=['distribute'],
 
 	author="Ingo Luetkebohle",
 	author_email="iluetkeb@techfak.uni-bielefeld.de",
