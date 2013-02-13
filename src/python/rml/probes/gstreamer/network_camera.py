@@ -33,7 +33,7 @@ class H264NetworkCameraProbe(Probe):
 			"fps": cfg.get(self.__KEY_FPS)
 		}
 		spec = ""
-		spec = "rtspsrc location=\"{url}\" latency=500 name=rtp".format(**args)
+		spec = "rtspsrc location=\"{url}\" latency=500 ! queue name=rtp".format(**args)
 		# add authorization info, if provided
 		if cfg.get(self.__KEY_USER) and cfg.get(self.__KEY_PASSWD):
 			spec += " user-id={user} user-pw={pwd}".format(**args)
