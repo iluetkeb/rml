@@ -3,7 +3,7 @@
         "environment": {}, 
         "state": {
             "last_session": 0, 
-            "last_run": 35
+            "last_run": 0
         }, 
         "version": 0.4, 
         "probes": {
@@ -12,7 +12,7 @@
                 "lcmchannel": "channel", 
                 "type": "lcm", 
                 "lcmurl": "udpm://239.255.77.88:8778?ttl=0", 
-                "location": "/tmp/lcm-channel-log"
+                "location": "lcm-channel.log"
             }
         }
     }
