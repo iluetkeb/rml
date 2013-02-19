@@ -12,7 +12,7 @@
                 "lcmchannel": "channel", 
                 "type": "lcm", 
                 "lcmurl": "udpm://239.255.77.88:8778?ttl=0", 
-                "location": "lcm-channel.log"
+                "location": "lcm-channelname.log"
             }
         }
     }
