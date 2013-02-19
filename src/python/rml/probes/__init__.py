@@ -49,6 +49,7 @@ class ProbeConfigurationException(Exception):
 from xcf.event import XCFProbe
 from xcf.camera import XCFImageProbe
 from rsb.event import RSBProbe
+from lcm.event import LCMProbe
 from opencv.camera import OpenCVProbe
 from gstreamer.tcp import TCPProbe
 from gstreamer.network_camera import H264NetworkCameraProbe
@@ -57,7 +58,8 @@ import ffmpeg.screen
 PROBES = {
 	"event": { 
 		"xcf": XCFProbe, 
-		"rsb": RSBProbe
+		"rsb": RSBProbe,
+		"lcm": LCMProbe
 	},
 	"camera": {
 		"opencv": OpenCVProbe,
