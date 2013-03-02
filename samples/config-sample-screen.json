@@ -1,0 +1,19 @@
+{
+    "rml_cfg": {
+        "environment": {},
+        "state": {
+            "last_session": 0,
+            "last_run": 0
+        },
+        "version": 0.4,
+        "probes": {
+            "screen": {
+                "class":"screen",
+                "display":":0",
+                "type":"ffmpeg",
+                "location":"foo.avi"
+            }
+        }
+    }
+}
+
