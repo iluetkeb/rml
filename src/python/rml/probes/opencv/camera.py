@@ -1,7 +1,14 @@
 from rml.probes import Probe, ProbeConfigurationException
 
 import threading
-from opencv import cv, highgui
+try:
+	# old OpenCV python interface
+	from opencv import cv, highgui
+except ImportError:
+	# new OpenCV interface
+	# TODO: revert the order of these, once we have changed the references below
+	import cv
+	import cv as highgui
 
 class OpenCVProbe(Probe):
 	__KEY_CAMERA = "camera_num"

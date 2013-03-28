@@ -1,0 +1,19 @@
+{
+    "rml_cfg": {
+        "environment": {}, 
+        "state": {
+            "last_session": 0, 
+            "last_run": 0
+        }, 
+        "version": 0.4, 
+        "probes": {
+            "lcm-events": {
+                "class": "event", 
+                "lcmchannel": "channel", 
+                "type": "lcm", 
+                "lcmurl": "udpm://239.255.77.88:8778?ttl=0", 
+                "location": "lcm-channelname.log"
+            }
+        }
+    }
+}
