@@ -38,7 +38,7 @@ class H264NetworkCameraProbe(Probe):
 		if cfg.get(self.__KEY_USER) and cfg.get(self.__KEY_PASSWD):
 			spec += " user-id={user} user-pw={pwd}".format(**args)
 
-		spec += " ! queue name=rtp rtp. ! rtph264depay ! capsfilter caps=\"video/x-h264, width={width}, height={height}, framerate=(fraction){fps}/1\" ! matroskamux name=mux ! filesink location={output} ".format(**args)
+		spec += " name=rtp rtp. ! rtph264depay ! capsfilter caps=\"video/x-h264, width={width}, height={height}, framerate=(fraction){fps}/1\" ! matroskamux name=mux ! filesink location={output} ".format(**args)
 		# add audio, unless disabled
 		if not cfg.get(self.__KEY_NOAUDIO):
 			spec += "  rtp. ! rtpmp4gdepay ! capsfilter caps=\"audio/mpeg, mpegversion=(int)4\" ! faad ! faac ! mux. ".format(**args)
