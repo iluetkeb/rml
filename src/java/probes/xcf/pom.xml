@@ -40,6 +40,7 @@
                 <version>1.2</version>
                 <configuration>
                     <repositoryName>share/repository</repositoryName>                        
+                    <extraJvmArguments>-Dfile.encoding=UTF-8</extraJvmArguments>
                     <programs>
                         <program>
                             <mainClass>de.unibi.agai.image.log.SingleImageLogger</mainClass>
@@ -58,7 +59,6 @@
                         <program>
                             <mainClass>de.unibi.agai.events.log.LogAll</mainClass>
                             <name>xcf_event_logger</name>
-                            <extraJvmArguments>-Dfile.encoding=UTF-8</extraJvmArguments>
                             <platforms>
                                 <platform>unix</platform>
                             </platforms> 
