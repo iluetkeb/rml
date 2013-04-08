@@ -128,7 +128,13 @@ public class LogAll extends SystemEventAdapter {
     }
     
     protected final void addPublisher(String uri) {
-        logger.log(Level.INFO, "Observing new publisher {0}", uri);
+        if(uri.startsWith("image")) {
+            logger.log(Level.INFO, "Ignoring image_publisher {0}", uri);
+            // FIXME: check contents for real, instead of relying on the name
+            return;
+        } else {
+            logger.log(Level.INFO, "Observing new publisher {0}", uri);
+        }
         try {
             Subscriber s = xm.createSubscriber(uri);
             PublisherLogger pl = new PublisherLogger(lw, uri);
