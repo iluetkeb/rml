@@ -9,8 +9,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,6 +20,9 @@ import net.sf.xcf.ActiveMemory;
 import net.sf.xcf.InitializeException;
 import net.sf.xcf.Subscriber;
 import net.sf.xcf.XcfManager;
+import net.sf.xcf.event.PublishEvent;
+import net.sf.xcf.event.PublishEventAdapter;
+import net.sf.xcf.event.PublishEventListener;
 import net.sf.xcf.event.system.AdditionEvent;
 import net.sf.xcf.event.system.DeletionEvent;
 import net.sf.xcf.event.system.SystemEvent;
@@ -46,6 +51,7 @@ public class LogAll extends SystemEventAdapter {
     private final List<XCFLogger> loggers =
             new CopyOnWriteArrayList<XCFLogger>();
     private final LogWriter lw;
+    private final Map<String,Subscriber> subscribers = new HashMap<String,Subscriber>();
 
     public LogAll(OutputStream out, XcfManager xm) {
         this.xm = xm;
@@ -134,6 +140,7 @@ public class LogAll extends SystemEventAdapter {
             PublisherLogger pl = new PublisherLogger(lw, uri);
             s.addListener(pl);
             loggers.add(pl);
+            subscribers.put(uri, s);
         } catch (InitializeException ex) {
             Logger.getLogger(LogAll.class.getName()).log(Level.SEVERE, null,
                     ex);
@@ -142,7 +149,43 @@ public class LogAll extends SystemEventAdapter {
                     ex);
         }
     }
-    
+
+    /**
+     *
+     */
+    protected final PublishEventListener imageUnsubscriber = new PublishEventAdapter() {
+
+        @Override
+        public void handleEvent(PublishEvent param) {
+            final Document d = param.getData().getDocument();
+            if(d != null) {
+                // check for image subscribers
+                if(d.getRootElement().getLocalName().equals("IMAGESET")) {
+                    final String name = param.getPublisherName();
+                    logger.log(Level.INFO, "Detected image publisher at {0}, " +
+                            "removing", name);
+                    // first remove the listeners
+                    removeLogger(name);
+                    // then deactivate the subscriber
+                    Subscriber s = subscribers.get(name);
+                    if(s != null) {
+                        try {
+                            s.removeListener(this);
+                            s.deactivate();
+                        } catch(Throwable t) {
+                            logger.log(Level.WARNING, "Error deactivating " +
+                                    "subscriber {0}: {1}", new Object[]{name,
+                                        t});
+                        }
+                    } else {
+                        logger.log(Level.WARNING, "No subscriber found for name {0}", name);
+                    }
+                }
+            }
+        }
+
+    };
+
     protected final void addServer(String uri) {
         logger.log(Level.WARNING, "Observing servers not supported, ignoring server {0}", uri);
     }
