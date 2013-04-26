@@ -61,8 +61,11 @@ class LogWriter {
             return f;
         } catch(RejectedExecutionException ex) {
             logger.log(Level.INFO, "Received log message while shutdown " +
-                    "is in progress, will not be logged");
+                    "is in progress, will not be logged {0}", ex);
             // ignore, being shut down
+        } catch(IllegalArgumentException ex) {
+            logger.log(Level.WARNING, "Error preparing formatter {0}, " +
+                    "ignoring message", ex);
         }
         return null;
     }    
@@ -74,14 +77,17 @@ class LogWriter {
     private final class FormatCallable implements Runnable {
 
         private final long millis, nanos;
-        private final Document doc;
+        private final String docXML;
         private final String name;
 
         public FormatCallable(long millis, long nanos, String name, Document doc) {
+            if(doc == null || doc.getRootElement() == null) {
+                throw new IllegalArgumentException("Document argument must not be null");
+            }
             this.millis = millis;
             this.nanos = nanos;
             this.name = name;
-            this.doc = doc;
+            this.docXML = doc.getRootElement().toXML();
         }
 
         @Override
@@ -97,7 +103,7 @@ class LogWriter {
             w.print(name);
             w.println("</xcflog:name>");
             w.println("<xcflog:data>");
-            w.print(doc.getRootElement().toXML());
+            w.print(docXML);
             w.println("</xcflog:data>");
             w.println("</xcflog:record>");
             w.flush();
