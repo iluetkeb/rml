@@ -18,7 +18,7 @@
     
     <repositories>
         <repository>
-            <id>xuggle repo</id>
+            <id>xugglerepo</id>
             <url>http://xuggle.googlecode.com/svn/trunk/repo/share/java/</url>
         </repository>
     </repositories>
@@ -40,6 +40,7 @@
                 <version>1.2</version>
                 <configuration>
                     <repositoryName>share/repository</repositoryName>                        
+                    <extraJvmArguments>-Dfile.encoding=UTF-8</extraJvmArguments>
                     <programs>
                         <program>
                             <mainClass>de.unibi.agai.image.log.SingleImageLogger</mainClass>
