@@ -7,7 +7,7 @@
     <version>1.0</version>
     <packaging>jar</packaging>
 
-    <name>XCFImageLogger</name>
+    <name>XCFLogger</name>
     <url>http://opensource.cit-ec.de/projects/rml</url>
 
     <parent>
