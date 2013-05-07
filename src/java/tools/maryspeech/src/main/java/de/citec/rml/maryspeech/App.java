@@ -1,75 +1,124 @@
 package de.citec.rml.maryspeech;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.sound.sampled.AudioInputStream;
-import javax.xml.parsers.DocumentBuilderFactory;
+import java.util.zip.GZIPInputStream;
 import javax.xml.parsers.ParserConfigurationException;
 import marytts.MaryInterface;
-import marytts.client.RemoteMaryInterface;
-import marytts.exceptions.SynthesisException;
 import nu.xom.Builder;
-import nu.xom.Document;
 import nu.xom.Element;
+import nu.xom.Elements;
 import nu.xom.Node;
 import nu.xom.Nodes;
-import nu.xom.converters.DOMConverter;
+import nu.xom.ParsingException;
 import nux.xom.xquery.StreamingPathFilter;
 import nux.xom.xquery.StreamingTransform;
 import org.jaxen.JaxenException;
-import org.jaxen.XPath;
-import org.jaxen.xom.XOMXPath;
-import org.w3c.dom.DOMImplementation;
 
 /**
  * Hello world!
  *
  */
 public class App {
-
-    public static void main(String[] args) throws JaxenException, ParserConfigurationException {
+    private static final Logger logger = Logger.getLogger(App.class.getName());
+    static final ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    //static final ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
+    
+    private static Element findElementByName(Element elmnt, String name, int maxdepth, int currentDepth) {
+        Element ret = null;
+        
+        if(currentDepth > maxdepth) {
+            return null;
+        }
+        
+        Elements children = elmnt.getChildElements();
+        for(int i=0; i<children.size(); i++) {
+            if(children.get(i).getLocalName().equals(name)) {
+                return children.get(i);
+            } else {
+                if((ret = findElementByName(children.get(i), name, maxdepth, currentDepth + 1))!=null) {
+                    break;
+                }
+            }
+        }
+        
+        return ret;
+    }
+    
+    public static void processFile(String filename) {
         try {
-            final DOMImplementation impl = DocumentBuilderFactory.newInstance().newDocumentBuilder().getDOMImplementation();
-            final MaryInterface mi = new RemoteMaryInterface();
-
-            // configure as in the scenario
-            //mi.setVoice("...");
-
             Map prefixes = new HashMap();
             StreamingPathFilter filter = new StreamingPathFilter(
                     "*:log/*:record", prefixes);
+            
+            File inFile = new File(filename);
+            logger.log(Level.INFO, "Opened file {0}.", inFile.getAbsolutePath());
 
-            final XPath maryXPath = new XOMXPath("//maryxml");
-            Builder b = new Builder(filter.createNodeFactory(null,
-                    new StreamingTransform() {
-                @Override
-                public Nodes transform(Element elmnt) {
-                    try {
-                        Node node = (Node) maryXPath.selectSingleNode(elmnt);
-                        if(node != null) {
-                            // parse timestamp...
+            if (inFile.exists()) {
+                final File destinationFolder = inFile.getParentFile();
 
-                            // process elements
-                            Document maryxml = new Document((Element)node.copy());
-                            org.w3c.dom.Document doc = DOMConverter.convert(maryxml, impl);
-                            AudioInputStream in = mi.generateAudio(doc);
-                            // write out audio, in timestamped wav.file
+                Builder b;
+                b = new Builder(filter.createNodeFactory(null,
+                new StreamingTransform() {
+
+                    @Override
+                    public Nodes transform(Element elmnt) {
+                        Node maryNode = findElementByName(elmnt, "maryxml", Integer.MAX_VALUE, 0);
+                        Node timestampNode = findElementByName(elmnt, "millis", 1, 0);
+
+
+                        if(maryNode != null && timestampNode != null) {
+                            ConvertTask task = new ConvertTask(maryNode, timestampNode, destinationFolder);
+                            threadPool.submit(task);
+                            //task.run();
+                        } else {
+                            logger.log(Level.FINE, "Could not find mary or timestamp tag in element.");
                         }
-                    } catch (JaxenException ex) {
-                        Logger.getLogger(App.class.getName()).
-                                log(Level.SEVERE, null, ex);
-                    } catch (SynthesisException ex) {
-                        Logger.getLogger(App.class.getName()).
-                                log(Level.SEVERE, null, ex);
+
+                        return new Nodes();
                     }
-                    return new Nodes();
+                }));
+
+                GZIPInputStream is = new GZIPInputStream(new FileInputStream(inFile));
+                try {
+                    logger.log(Level.INFO, "Starting parsing of file {0}.", inFile.getAbsolutePath());
+                    b.build(is);
+                    logger.log(Level.INFO, "Finished of file {0}, waiting for tasks to finish.", inFile.getAbsolutePath());
+                } catch (ParsingException ex) {
+                    logger.log(Level.SEVERE, null, ex);
+                } finally {
+                    is.close();
                 }
-            }));
+            } else {
+                logger.log(Level.SEVERE, "File {0} does not exist!", inFile.getAbsolutePath());
+            }
         } catch (IOException ex) {
-            Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
+            logger.log(Level.SEVERE, null, ex);
         }
+    }
+    
+    public static void main(String[] args) throws JaxenException, ParserConfigurationException, InterruptedException {
+        threadPool.prestartAllCoreThreads();
+        ConvertTask.initEnvironment();
+        
+        logger.log(Level.INFO, "Starting the process...");
+        
+        for(int i=0; i<args.length; i++) {
+            processFile(args[i]);
+        }
+        
+        threadPool.shutdown();
+        while(!threadPool.awaitTermination(1, TimeUnit.SECONDS)) {
+            logger.log(Level.INFO, "Still waiting, Tasks left: {0}", threadPool.getTaskCount() - threadPool.getCompletedTaskCount());
+        }
+        logger.log(Level.INFO, "Process finished!");
     }
 }
