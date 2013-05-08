@@ -50,6 +50,7 @@ from xcf.event import XCFProbe
 from xcf.camera import XCFImageProbe
 from rsb.event import RSBProbe
 from lcm.event import LCMProbe
+from ros.event import ROSProbe
 from opencv.camera import OpenCVProbe
 from gstreamer.tcp import TCPProbe
 from gstreamer.network_camera import H264NetworkCameraProbe
@@ -59,7 +60,8 @@ PROBES = {
 	"event": { 
 		"xcf": XCFProbe, 
 		"rsb": RSBProbe,
-		"lcm": LCMProbe
+		"lcm": LCMProbe,
+                "ros": ROSProbe
 	},
 	"camera": {
 		"opencv": OpenCVProbe,
