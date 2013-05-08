@@ -1,0 +1,18 @@
+{
+    "rml_cfg": {
+        "environment": {}, 
+        "state": {
+            "last_session": 0, 
+            "last_run": 27
+        }, 
+        "version": 0.4, 
+        "probes": {
+            "ros-events": {
+                "rostopics": "/turtle1/pose", 
+                "type": "ros", 
+                "location": "not_used", 
+                "class": "event"
+            }
+        }
+    }
+}
