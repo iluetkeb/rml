@@ -3,13 +3,13 @@
         "environment": {},
         "state": {
             "last_session": 0,
-            "last_run": 30
+            "last_run": 0
         },
         "version": 0.4,
         "probes": {
             "ros-events": {
                 "compress": "--bz2",
-                "rostopics": "turtle1/pose turtle1/pose",
+                "rostopics": "turtle1/pose",
                 "location": "not_used",
                 "type": "ros",
                 "class": "event",
