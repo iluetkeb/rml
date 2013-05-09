@@ -6,7 +6,6 @@ class ROSProbe(Probe):
 	__KEY_ROS_TOPIC  = "rostopic"
 	__KEY_ROS_SPLIT  = "split"     # -b 1024 (in MB)
 	__KEY_ROS_COMP   = "compress"  # -j or --bz2
-	# __KEY_ROS_PRFX  = "prefix"   # --output-name=NAME.bag
 	
 	REQ_CONFIG = [ "%s" % __KEY_ROS_TOPIC, "%s" % __KEY_ROS_SPLIT ]
 	OPT_CONFIG = [ "%s" % __KEY_ROS_COMP ]
@@ -20,12 +19,12 @@ class ROSProbe(Probe):
 		self.rostopic    = cfg.get(self.__KEY_ROS_TOPIC)
 		self.split	 = cfg.get(self.__KEY_ROS_SPLIT)
 		self.compress    = cfg.get(self.__KEY_ROS_COMP)
-		# self.prefix    = cfg.get(self.__KEY_ROS_PRFX)		
-
+		self.prefix      = cfg.get_outputlocation()		
+		
 
 	def do_start(self):
 		if(self.compress == "-j" or self.compress == "--bz2"):
-              		cmd = [ 'rosbag', 'record', '%s' % self.compress, '%s' % self.split, '%s' % self.rostopic ]
+              		cmd = [ 'rosbag', 'record', '-o', '%s' % self.prefix, '%s' % self.compress, '%s' % self.split, '%s' % self.rostopic ]
 			print cmd
 			self.proc = subprocess.Popen(cmd, bufsize=1)
 		else:
