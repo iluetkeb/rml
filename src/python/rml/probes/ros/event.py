@@ -28,7 +28,7 @@ class ROSProbe(Probe):
 			print cmd
 			self.proc = subprocess.Popen(cmd, bufsize=1)
 		else:
-			cmd = [ 'rosbag', 'record', '%s' % self.split, '%s' % self.rostopic ]
+			cmd = [ 'rosbag', 'record', '-o', '%s' % self.prefix, '%s' % self.split, '%s' % self.rostopic ]
                         print cmd
                         self.proc = subprocess.Popen(cmd, bufsize=1)
 		if not self.proc:
