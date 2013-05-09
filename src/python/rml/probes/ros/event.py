@@ -8,7 +8,8 @@ class ROSProbe(Probe):
 	__KEY_ROS_COMP   = "compress"  # -j or --bz2
 	# __KEY_ROS_PRFX  = "prefix"   # --output-name=NAME.bag
 	
-	REQ_CONFIG = ["%s" % __KEY_ROS_TOPIC, "%s" % __KEY_ROS_SPLIT, "%s" % __KEY_ROS_COMP]
+	REQ_CONFIG = [ "%s" % __KEY_ROS_TOPIC, "%s" % __KEY_ROS_SPLIT ]
+	OPT_CONFIG = [ "%s" % __KEY_ROS_COMP ]
 
 	def __init__(self, env, cfg):
 		Probe.__init__(self, env, cfg)
