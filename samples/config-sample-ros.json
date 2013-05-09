@@ -3,15 +3,17 @@
         "environment": {}, 
         "state": {
             "last_session": 0, 
-            "last_run": 27
+            "last_run": 0
         }, 
         "version": 0.4, 
         "probes": {
             "ros-events": {
-                "rostopics": "/turtle1/pose", 
+                "class": "event", 
+		"compress": "--bz2",		
+                "location": "mybag", 
                 "type": "ros", 
-                "location": "not_used", 
-                "class": "event"
+                "rostopic": "turtle1/pose", 
+                "split": "-b 1024"
             }
         }
     }
