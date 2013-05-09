@@ -1,21 +1,20 @@
 {
     "rml_cfg": {
-        "environment": {},
+        "environment": {}, 
         "state": {
-            "last_session": 0,
+            "last_session": 0, 
             "last_run": 0
-        },
-        "version": 0.4,
+        }, 
+        "version": 0.4, 
         "probes": {
             "ros-events": {
-                "compress": "--bz2",
-                "rostopics": "turtle1/pose",
-                "location": "not_used",
-                "type": "ros",
-                "class": "event",
-                "split": "-b 1024"
+                "compress": "--bz2", 
+                "rostopic": "turtle1/pose", 
+                "split": "-b 1024", 
+                "type": "ros", 
+                "class": "event", 
+                "location": "not_used"
             }
         }
     }
 }
-
