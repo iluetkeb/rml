@@ -3,12 +3,12 @@ from rml.probes import Probe, ProbeConfigurationException
 import subprocess, signal
 
 class ROSProbe(Probe):
-	__KEY_ROS_TOPICS = "rostopics"
-	__KEY_ROS_SPLIT  = "split"    # -b 1024 (in MB)
-	__KEY_ROS_COMP   = "compress" # -j
+	__KEY_ROS_TOPIC  = "rostopic"
+	__KEY_ROS_SPLIT  = "split"     # -b 1024 (in MB)
+	__KEY_ROS_COMP   = "compress"  # -j or --bz2
 	# __KEY_ROS_PRFX  = "prefix"   # --output-name=NAME.bag
 	
-	REQ_CONFIG = ["%s" % __KEY_ROS_TOPICS, "%s" % __KEY_ROS_SPLIT, "%s" % __KEY_ROS_COMP]
+	REQ_CONFIG = ["%s" % __KEY_ROS_TOPIC, "%s" % __KEY_ROS_SPLIT, "%s" % __KEY_ROS_COMP]
 
 	def __init__(self, env, cfg):
 		Probe.__init__(self, env, cfg)
@@ -16,19 +16,19 @@ class ROSProbe(Probe):
 
 		self.proc        = None
 		self.logfilename = cfg.get_outputlocation()
-		self.rostopics   = cfg.get(self.__KEY_ROS_TOPICS)
+		self.rostopic    = cfg.get(self.__KEY_ROS_TOPIC)
 		self.split	 = cfg.get(self.__KEY_ROS_SPLIT)
 		self.compress    = cfg.get(self.__KEY_ROS_COMP)
-		# self.prefix     = cfg.get(self.__KEY_ROS_PRFX)		
+		# self.prefix    = cfg.get(self.__KEY_ROS_PRFX)		
 
 
 	def do_start(self):
 		if(self.compress == "-j" or self.compress == "--bz2"):
-              		cmd = [ 'rosbag', 'record', '%s' % self.compress, '%s' % self.split, '%s' % self.rostopics ]
+              		cmd = [ 'rosbag', 'record', '%s' % self.compress, '%s' % self.split, '%s' % self.rostopic ]
 			print cmd
 			self.proc = subprocess.Popen(cmd, bufsize=1)
 		else:
-			cmd = [ 'rosbag', 'record', '%s' % self.split, '%s' % self.rostopics ]
+			cmd = [ 'rosbag', 'record', '%s' % self.split, '%s' % self.rostopic ]
                         print cmd
                         self.proc = subprocess.Popen(cmd, bufsize=1)
 		if not self.proc:
