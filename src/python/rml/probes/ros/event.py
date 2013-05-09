@@ -4,22 +4,33 @@ import subprocess, signal
 
 class ROSProbe(Probe):
 	__KEY_ROS_TOPICS = "rostopics"
-	#__KEY_URL = "lcmurl"
+	__KEY_ROS_SPLIT  = "split"    # -b 1024 (in MB)
+	__KEY_ROS_COMP   = "compress" # -j
+	# __KEY_ROS_PRFX  = "prefix"   # --output-name=NAME.bag
 	
-	REQ_CONFIG = ["%s" % __KEY_ROS_TOPICS, ] #"%s" % __KEY__URL ]
+	REQ_CONFIG = ["%s" % __KEY_ROS_TOPICS, "%s" % __KEY_ROS_SPLIT, "%s" % __KEY_ROS_COMP]
 
 	def __init__(self, env, cfg):
 		Probe.__init__(self, env, cfg)
 		cfg.check_keys(self.REQ_CONFIG)
 
-		self.proc = None
-		self.logfilelocation = cfg.get_outputlocation()
-		self.rostopics = cfg.get(self.__KEY_ROS_TOPICS)
+		self.proc        = None
+		self.logfilename = cfg.get_outputlocation()
+		self.rostopics   = cfg.get(self.__KEY_ROS_TOPICS)
+		self.split	 = cfg.get(self.__KEY_ROS_SPLIT)
+		self.compress    = cfg.get(self.__KEY_ROS_COMP)
+		# self.prefix     = cfg.get(self.__KEY_ROS_PRFX)		
+
 
 	def do_start(self):
-                cmd = [ 'rosbag', 'record', '%s' % (self.rostopics) ]
-		print cmd
-		self.proc = subprocess.Popen(cmd, bufsize=1)
+		if(self.compress == "-j" or self.compress == "--bz2"):
+              		cmd = [ 'rosbag', 'record', '%s' % self.compress, '%s' % self.split, '%s' % self.rostopics ]
+			print cmd
+			self.proc = subprocess.Popen(cmd, bufsize=1)
+		else:
+			cmd = [ 'rosbag', 'record', '%s' % self.split, '%s' % self.rostopics ]
+                        print cmd
+                        self.proc = subprocess.Popen(cmd, bufsize=1)
 		if not self.proc:
 			raise ProbeConfigurationException("Could not start rosbag record process")
 		
@@ -31,4 +42,4 @@ class ROSProbe(Probe):
 		return Probe.is_alive(self) and self.proc is not None
 
 	def __repr__(self):
-		return repr(self.logfilelocation)
+		return repr(self.logfilename)
