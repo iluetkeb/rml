@@ -13,6 +13,8 @@
   <url>http://opensource.cit-ec.de/projects/rml</url>
   <license>GPLv3</license>
   <buildtool_depend>catkin</buildtool_depend>
+  <rosdep name="python-opencv"/>
+  <rosdep name="ffmpeg"/>
   <build_depend>rospy</build_depend>
   <build_depend>std_msgs</build_depend>
   <run_depend>rospy</run_depend>
