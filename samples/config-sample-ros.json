@@ -8,11 +8,11 @@
         "version": 0.4, 
         "probes": {
             "ros-events": {
-                "class": "event", 
-		"compress": "--bz2",		
+                "rostopic": "turtle1/pose", 
+                "compress": "none", 
                 "location": "mybag", 
                 "type": "ros", 
-                "rostopic": "turtle1/pose", 
+                "class": "event", 
                 "split": "-b 1024"
             }
         }
