@@ -3,7 +3,7 @@ setup(
 	name = "RobotMetaLogger",
 	version = "0.4",
 	packages = find_packages(),
-	scripts = ["bin/rml"],
+	scripts = ["bin/rml", "bin/actions_to_intervals.py", "bin/normalize_intervals.py"],
 
 	test_suite="test",
 
