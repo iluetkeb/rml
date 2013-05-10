@@ -26,7 +26,8 @@ if __name__ == '__main__':
                 if line.strip().startswith("#"):
                     print line
                 else:
-                    tier, taskid, start, end, state = line.split()
+                    tier, taskid, start, end, state = line.split("\t", 4)
+                    state = state.strip()
                     start = int(start) - offset
                     end = int(end) - offset
                     print "%s\t%s\t%d\t%d\t%s" % (tier, taskid, start, end, state)

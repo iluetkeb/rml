@@ -14,11 +14,13 @@ class Action:
         self.goal_id = goal_id
         self.start_stamp = start_stamp
         self.end_stamp = start_stamp
-        self.end_state = 0
+        self.end_state = 0        
+        self.text = ""
 
-    def set_end(self, status, end_stamp):
+    def set_end(self, status, end_stamp, text=""):
         self.end_stamp = end_stamp
         self.end_state = status
+        self.text = text
 
     def start_ms(self):
         '''Starting time in milliseconds'''
@@ -37,7 +39,7 @@ class Action:
 
     def as_interval(self):
         '''Return standard RML interval format'''
-        return "%s\t%s\t%s\t%s\t%s" % (self.topic, self.goal_id, self.start_ms(), self.end_ms(), self.end_state_name())
+        return "%s\t%s\t%s\t%s\t%s %s" % (self.topic, self.goal_id, self.start_ms(), self.end_ms(), self.end_state_name(), self.text)
 
 if __name__ == '__main__':
     for filename in sys.argv[1:]:
@@ -62,7 +64,7 @@ if __name__ == '__main__':
                     elif status.status in (status.SUCCEEDED, status.PREEMPTING, status.LOST, status.ABORTED):
                         # done, report the action interval
                         if action is not None:
-                            action.set_end(status.status, stamp)
+                            action.set_end(status.status, stamp, status.goal_id.id)
                             print action.as_interval()
                             del actions[status.goal_id.id]
             

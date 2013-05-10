@@ -76,7 +76,10 @@ if __name__ == '__main__':
     time_slots = TimeSlots(eafxml)
 
     for line in file(sys.argv[1]):
-        tier_name, taskid, start, end, state = line.split("\t")
+        if not line.strip() or line.strip().startswith("#"):
+            continue
+
+        tier_name, taskid, start, end, state = line.split("\t", 4)
         tier = tiers.get(tier_name)
         if not tier:
             tier = Tier(eafxml, time_slots, tier_name)
