@@ -74,6 +74,14 @@ catkin_package()
 #   ${catkin_LIBRARIES}
 # )
 
+##    Evil stuff is coming ...		##
+
+
+##    Needed for configure.in files :|	##
+execute_process(COMMAND /bin/sh bootstrap.sh WORKING_DIRECTORY ../src/${PROJECT_NAME})
+execute_process(COMMAND /bin/sh configure --prefix=${CATKIN_INSTALL_PREFIX} WORKING_DIRECTORY ../src/${PROJECT_NAME})
+
+
 #############
 ## Install ##
 #############
