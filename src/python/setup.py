@@ -9,7 +9,9 @@ setup(
 
 	extras_require = {
 		'gstreamer': 'gst-python>=0.10',
-		'opencv': 'opencv'
+		'opencv': 'opencv',
+		'lxml': 'lxml',
+		'numpy': 'numpy'
 	},
 
 	author="Ingo Luetkebohle",
