@@ -64,7 +64,7 @@ if __name__ == '__main__':
                     elif status.status in (status.SUCCEEDED, status.PREEMPTING, status.LOST, status.ABORTED):
                         # done, report the action interval
                         if action is not None:
-                            action.set_end(status.status, stamp, status.goal_id.id)
+                            action.set_end(status.status, stamp)
                             print action.as_interval()
                             del actions[status.goal_id.id]
             

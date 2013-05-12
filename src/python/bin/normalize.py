@@ -1,13 +1,13 @@
 #! /usr/bin/env python -w
 # 
-# Normalize interval times to a given offset
+# Normalize data times to a given offset
 #
 
 if __name__ == '__main__':
     import sys, getopt
 
     if len(sys.argv) < 3:
-        print "Syntax: %s offset_ms intervalfile [intervalfile2 ...]" % sys.argv[0]
+        print "Syntax: %s offset_ms c1[,c2[,c3..]] file [file2 ...]" % sys.argv[0]
         sys.exit(-1)
         
     # check arguments
@@ -21,13 +21,15 @@ if __name__ == '__main__':
         print "Illegal offset given:", ex
         sys.exit(-1)
 
-    for filename in sys.argv[2:]:
+    columns = [int(i) for i in sys.argv[2].split(",")]
+
+    for filename in sys.argv[3:]:
             for line in file(filename):
+                line = line.strip()
                 if line.strip().startswith("#"):
                     print line
                 else:
-                    tier, taskid, start, end, state = line.split("\t", 4)
-                    state = state.strip()
-                    start = int(start) - offset
-                    end = int(end) - offset
-                    print "%s\t%s\t%d\t%d\t%s" % (tier, taskid, start, end, state)
+                    parts = line.split("\t", 4)
+                    for c in columns:
+                        parts[c] = int(parts[c]) - offset
+                    print "\t".join([str(s) for s in parts])

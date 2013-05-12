@@ -84,7 +84,7 @@ if __name__ == '__main__':
         if not tier:
             tier = Tier(eafxml, time_slots, tier_name)
             tiers[tier_name] = tier
-        tier.add_annotation(start, end, state.strip())
+        tier.add_annotation(start, end, "%s %s" % (state.strip(), taskid))
 
     print etree.tostring(eafxml, pretty_print=True)
 
