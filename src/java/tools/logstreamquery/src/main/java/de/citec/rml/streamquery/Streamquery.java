@@ -93,6 +93,7 @@ public class Streamquery implements Runnable {
                                             n);
                                 }
                             }
+                            ser.write(new Text("\n"));
                         }
                     } catch (IOException ex) {
                         Logger.getLogger(Streamquery.class.getName()).
