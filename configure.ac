@@ -39,7 +39,8 @@ AC_OUTPUT(Makefile
 	libs/Makefile
 	src/python/Makefile
 	src/python/rml/rml_config.py
-	src/java/probes/xcf/Makefile)
+	src/java/probes/xcf/Makefile
+	src/java/tools/logstreamquery/Makefile)
 
 #	src/Makefile
 #	src/java/Makefile
