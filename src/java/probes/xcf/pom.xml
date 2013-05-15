@@ -20,7 +20,30 @@
         <repository>
             <id>xugglerepo</id>
             <url>http://xuggle.googlecode.com/svn/trunk/repo/share/java/</url>
+       </repository>
+ <repository>
+          <id>citec-pub-release</id>
+          <name>CITEC Maven Repository Server</name>
+          <url>https://repo.cit-ec.uni-bielefeld.de/content/repositories/public-releases/</url>
+          <layout>default</layout>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots><enabled>false</enabled></snapshots>
         </repository>
+        <repository>
+          <id>citec-pub-snapshot</id>
+          <name>CITEC Maven Repository Server</name>
+          <url>https://repo.cit-ec.uni-bielefeld.de/content/repositories/public-snapshots/</url>
+          <layout>default</layout>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+          <releases>
+            <enabled>false</enabled>
+          </releases>
+        </repository>
+
     </repositories>
   
     

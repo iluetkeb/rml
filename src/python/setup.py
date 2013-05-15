@@ -3,13 +3,15 @@ setup(
 	name = "RobotMetaLogger",
 	version = "0.4",
 	packages = find_packages(),
-	scripts = ["bin/rml"],
+	scripts = ["bin/rml", "bin/actions_to_intervals.py", "bin/normalize_intervals.py"],
 
 	test_suite="test",
 
 	extras_require = {
 		'gstreamer': 'gst-python>=0.10',
-		'opencv': 'opencv'
+		'opencv': 'opencv',
+		'lxml': 'lxml',
+		'numpy': 'numpy'
 	},
 
 	author="Ingo Luetkebohle",
