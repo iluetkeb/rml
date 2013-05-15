@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import net.sf.saxon.Configuration;
+import net.sf.saxon.query.StaticQueryContext;
 import nu.xom.Builder;
 import nu.xom.Comment;
 import nu.xom.DocType;
@@ -22,28 +24,30 @@ import nu.xom.Node;
 import nu.xom.Nodes;
 import nu.xom.ParsingException;
 import nu.xom.Text;
-import nu.xom.ValidityException;
 import nux.xom.io.StreamingSerializer;
 import nux.xom.io.StreamingSerializerFactory;
 import nux.xom.xquery.StreamingPathFilter;
 import nux.xom.xquery.StreamingTransform;
-import nux.xom.xquery.XQueryUtil;
+import nux.xom.xquery.XQuery;
+import nux.xom.xquery.XQueryException;
 
 /**
  * Hello world!
  *
  */
 public class Streamquery implements Runnable {
+
     public static final String XCFLOG_NS =
             "http://opensource.cit-ec.de/xcflogger.dtd";
-
-    private final String query;
+    private final XQuery query;
     private final InputStream in;
     private final OutputStream out;
 
     public Streamquery(String query, InputStream in,
-            OutputStream out) {
-        this.query = query;
+            OutputStream out) throws XQueryException {
+        StaticQueryContext context = new StaticQueryContext(new Configuration());
+        context.declareActiveNamespace("xcflog", XCFLOG_NS);
+        this.query = new XQuery(query, null, context, null);
         this.in = in;
         this.out = out;
     }
@@ -69,36 +73,42 @@ public class Streamquery implements Runnable {
             StreamingTransform myTransform = new StreamingTransform() {
                 @Override
                 public Nodes transform(Element elmnt) {
-                    Nodes results = XQueryUtil.xquery(elmnt,
-                            query);
                     try {
-                        if (results.size() > 0) {
-                            // write output
-                            for (int i = 0, len = results.size(); i < len; ++i) {
-                                Node n = results.get(i);
-                                if (n instanceof Element) {
-                                    ser.write((Element) n);
-                                } else if (n instanceof Text) {
-                                    ser.write((Text) n);
-                                } else if (n instanceof DocType) {
-                                    ser.write((DocType) n);
-                                } else if (n instanceof Comment) {
-                                    ser.write((Comment) n);
-                                } else {
-                                    Logger.
-                                            getLogger(Streamquery.class.
-                                            getName()).
-                                            log(Level.WARNING, "Do not " +
-                                            "recognize type of {0}, not written",
-                                            n);
+                        Nodes results = query.execute(elmnt).toNodes();
+
+                        try {
+                            if (results.size() > 0) {
+                                // write output
+                                for (int i = 0, len = results.size(); i < len;
+                                        ++i) {
+                                    Node n = results.get(i);
+                                    if (n instanceof Element) {
+                                        ser.write((Element) n);
+                                    } else if (n instanceof Text) {
+                                        ser.write((Text) n);
+                                    } else if (n instanceof DocType) {
+                                        ser.write((DocType) n);
+                                    } else if (n instanceof Comment) {
+                                        ser.write((Comment) n);
+                                    } else {
+                                        Logger.
+                                                getLogger(Streamquery.class.
+                                                getName()).
+                                                log(Level.WARNING, "Do not " +
+                                                "recognize type of {0}, not written",
+                                                n);
+                                    }
                                 }
+                                ser.write(new Text("\n"));
                             }
-                            ser.write(new Text("\n"));
+                        } catch (IOException ex) {
+                            Logger.getLogger(Streamquery.class.getName()).
+                                    log(Level.SEVERE, "Could not write " +
+                                    "{0}: {1}", new Object[]{elmnt, ex});
                         }
-                    } catch (IOException ex) {
+                    } catch (XQueryException ex) {
                         Logger.getLogger(Streamquery.class.getName()).
-                                log(Level.SEVERE, "Could not write " +
-                                "{0}: {1}", new Object[]{elmnt, ex});
+                                log(Level.SEVERE, null, ex);
                     }
                     return new Nodes(); // mark current element as subject to garbage collection
                 }
@@ -115,10 +125,12 @@ public class Streamquery implements Runnable {
             ser.writeEndDocument();
         } catch (ParsingException ex) {
             Logger.getLogger(Streamquery.class.getName()).
-                    log(Level.SEVERE, "Error parsing input {0}: {1}", new Object[]{in, ex});
+                    log(Level.SEVERE, "Error parsing input {0}: {1}",
+                    new Object[]{in, ex});
         } catch (IOException ex) {
             Logger.getLogger(Streamquery.class.getName()).
-                    log(Level.SEVERE, "IO error parsing input {0}: {1}", new Object[]{in, ex});
+                    log(Level.SEVERE, "IO error parsing input {0}: {1}",
+                    new Object[]{in, ex});
         } finally {
             try {
                 out.close();
@@ -136,7 +148,7 @@ public class Streamquery implements Runnable {
         }
     }
 
-    public static Streamquery createFromArgs(String[] args) throws IOException {
+    public static Streamquery createFromArgs(String[] args) throws IOException, XQueryException {
         String query = null;
         InputStream input = System.in;
         OutputStream output = System.out;
@@ -187,12 +199,13 @@ public class Streamquery implements Runnable {
         try {
             Streamquery sq = createFromArgs(args);
             if (sq == null) {
-                System.err.println("Could not configure Streamquery from given arguments, exiting.");
+                System.err.println(
+                        "Could not configure Streamquery from given arguments, exiting.");
                 System.exit(-1);
             }
             sq.run();
 
-        } catch (IOException ex) {
+        } catch (IOException | XQueryException ex) {
             ex.printStackTrace(System.err);
             System.exit(-1);
         }
