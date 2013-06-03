@@ -1,0 +1,172 @@
+#! /usr/bin/env python
+#
+#
+#
+import csv, os.path, subprocess, StringIO, time, calendar, fnmatch
+
+def parse_encoded_date(line):
+	'''Takes line from mediainfo and returns a date object'''
+	header, datestr = line.split(":", 1)
+	datestr = datestr.strip()
+	return calendar.timegm(time.strptime(datestr, "%Z %Y-%m-%d %H:%M:%S"))
+
+def format_tc(seconds):
+	'''Format as timecode in the format mkvmerge --split expects'''
+	return time.strftime("%H:%M:%S", time.gmtime(seconds))
+
+def format_datetime(seconds):
+	'''Full date and time'''
+	return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(seconds))
+
+class Locations:
+	def __init__(self, inputdir, outputdir):
+		self.inputdir = inputdir
+		self.outputdir = outputdir
+
+	def base(self, filename, sub=None):
+		base = os.path.basename(filename)
+		if sub is not None:
+			root, pfx = os.path.splitext(base)
+			base = "%s%s%s" % (root, sub, pfx)
+		return base
+
+	def to_out(self, filename, sub=None):
+		base = self.base(filename, sub)
+		return os.path.join(self.outputdir, base)
+
+	def to_in(self, filename, sub=None):
+		base = self.base(filename, sub)
+		return os.path.join(self.inputdir, base)
+
+	def match_outdir(self, filename, sub=None):
+		if sub is not None:
+			sub = "%s*" % sub
+		else:
+			sub = "*"
+
+		print sub
+		outputs = []
+		base = self.base(filename, sub)
+		for filename in os.listdir(self.outputdir):
+			if fnmatch.fnmatch(filename, base):
+				outputs.append(filename)
+		return outputs
+
+	def mkoutdir(self):
+		if not os.path.exists(self.outputdir):
+			os.mkdir(self.outputdir)
+		
+
+class VideoTimes:
+	def __init__(self, filename, locations):
+		self.loc = locations
+		self.filename = filename
+		self.split_times = {}
+		mediainfo = StringIO.StringIO(subprocess.check_output(["mediainfo", self.loc.to_in(self.filename)]))
+		self.start_time = None
+		for line in mediainfo:
+			if line.startswith("Encoded date"):
+				self.start_time = parse_encoded_date(line)
+				break
+
+		if not self.start_time:
+			raise "No start time found in media info for %s" % self.loc.to_in(self.filename)
+
+	def add_split(self, cm, start_ts_utc, end_ts_utc):
+		start = int(start_ts_utc) - self.start_time
+		end = int(end_ts_utc) - self.start_time
+		if end < start:
+			raise "start must be before end"
+		self.split_times[cm] = (start, end)
+
+	def get_splits(self):
+		splits = []
+		for start, end in self.split_times.values():
+			splits.append(start)
+			splits.append(end)
+		splits.sort()
+		return splits
+
+	def to_split_timecodes(self):
+		return "timecodes:%s" % ",".join([format_tc(i) for i in self.get_splits()])
+
+	def split_parts(self):		
+		items = sorted(self.split_times.items(), cmp=lambda a, b: cmp(a[1][0], b[1][0]))
+		splitarg = "parts:%s" % ",".join(["%s-%s" % (format_tc(times[0]), format_tc(times[1])) for cm, times in items])
+		print self.filename, splitarg
+	
+		self.loc.mkoutdir()
+
+		subprocess.check_call(["mkvmerge", "--split", splitarg, "-o", self.loc.to_out(self.filename, "-part"), self.loc.to_in(self.filename)])
+		outputs = self.loc.match_outdir(self.filename, "-part")
+	
+		c_output = len(outputs)
+		c_target = len(items)
+		if c_output == c_target:
+			for cm, output in zip([key for key, times in items], outputs):
+				old = self.loc.to_out(output)
+				new = self.loc.to_out(self.filename, "-cm%s" % cm)
+				print "%s -> %s" % (old, new)
+				os.rename(old, new)
+		else:
+			print "Anzahl Ausgabedateien (%d) != Anzahl Target-Splits (%d)" % (c_output, c_target)
+	
+
+if __name__ == '__main__':
+	import sys, getopt
+
+	# extract options
+	optlist, args = getopt.getopt(sys.argv[1:], 'p:t:')
+
+	# check if we got the right number of non-option args
+	if len(args) != 1:
+		print "Syntax: %s <csvfile> [-p outputprefix] [-t time_offset]" % sys.argv[0]
+		print " - Giving '-' as the csvfile will read from stdin."
+		print " - 'time_offset' is in seconds."
+		sys.exit(-1)
+
+
+	# read either from stdin or file
+	if args[0] == "-":
+		in_stream = sys.stdin
+	else:
+		in_stream = file(args[0], "rb")
+
+	# handle options
+	outputprefix = "."
+	offset = 0
+	for option, arg in optlist:
+		if option == "-p":
+			outputprefix = arg
+		elif option == "-t":
+			offset = int(arg)
+		else:
+			print "Option %s unrecognized" % option
+
+	# variable for outputs
+	file_times = {}
+		
+	# start processing input
+	for row in csv.reader(in_stream, delimiter='\t', quotechar='"'):
+		if len(row) < 11:
+			continue
+		_, session, filename, cm, _, _, start_ts, _, _, end_ts, _ = row
+		fullname = os.path.join(session, filename)
+		if os.path.exists(fullname):
+			time_info = file_times.get(fullname, None)
+			if not time_info:
+				loc = Locations(session, os.path.join(outputprefix, session))
+				time_info = VideoTimes(filename, loc)
+				file_times[fullname] = time_info
+			time_info.add_split(cm, int(start_ts) + offset, int(end_ts) + offset)
+		else:
+			print "Did not find media file %s" % fullname
+
+
+	# do the splits
+	for vt in file_times.values():
+		#print vt.filename, vt.to_split_timecodes()
+		vt.split_parts()
+
+
+	
