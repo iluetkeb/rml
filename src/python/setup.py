@@ -1,9 +1,14 @@
 from setuptools import setup, find_packages
 setup(
 	name = "RobotMetaLogger",
-	version = "0.4",
+	version = "0.5",
 	packages = find_packages(),
-	scripts = ["bin/rml", "bin/actions_to_intervals.py", "bin/normalize.py", "bin/event_hist.py"],
+	scripts = ["bin/rml", 
+		"bin/actions_to_intervals.py", 
+		"bin/normalize.py", 
+		"bin/event_hist.py",
+		"bin/split-mkv",
+		"bin/split-xml"],
 
 	test_suite="test",
 

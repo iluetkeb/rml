@@ -59,5 +59,53 @@ class Environment:
 
 Instance = Environment()
 
+# helper methods for 
+def format_tc(seconds):
+	'''Format as timecode in the format mkvmerge --split expects'''
+	return time.strftime("%H:%M:%S", time.gmtime(seconds))
+
+def format_datetime(seconds):
+	'''Full date and time'''
+	return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(seconds))
+
+class Locations:
+	def __init__(self, inputdir, outputdir):
+		self.inputdir = inputdir
+		self.outputdir = outputdir
+
+	def base(self, filename, sub=None):
+		base = os.path.basename(filename)
+		if sub is not None:
+			root, pfx = os.path.splitext(base)
+			base = "%s%s%s" % (root, sub, pfx)
+		return base
+
+	def to_out(self, filename, sub=None):
+		base = self.base(filename, sub)
+		return os.path.join(self.outputdir, base)
+
+	def to_in(self, filename, sub=None):
+		base = self.base(filename, sub)
+		return os.path.join(self.inputdir, base)
+
+	def match_outdir(self, filename, sub=None):
+		if sub is not None:
+			sub = "%s*" % sub
+		else:
+			sub = "*"
+
+		print sub
+		outputs = []
+		base = self.base(filename, sub)
+		for filename in os.listdir(self.outputdir):
+			if fnmatch.fnmatch(filename, base):
+				outputs.append(filename)
+		return outputs
+
+	def mkoutdir(self):
+		if not os.path.exists(self.outputdir):
+			os.mkdir(self.outputdir)
+
+
 if __name__ == '__main__':
 	print Instance.get_classpath(['edl.jar'])
