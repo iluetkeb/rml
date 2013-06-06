@@ -69,9 +69,11 @@ def format_datetime(seconds):
 	return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(seconds))
 
 class Locations:
-	def __init__(self, inputdir, outputdir):
+	def __init__(self, inputdir, outputdir, inpattern="%{dir}s", outpattern="%{dir}s%{basename}s%{sub}s%{ext}s"):
 		self.inputdir = inputdir
 		self.outputdir = outputdir
+		self.inpattern = inpattern
+		self.outpattern = outpattern
 
 	def base(self, filename, sub=None):
 		base = os.path.basename(filename)
@@ -80,11 +82,22 @@ class Locations:
 			base = "%s%s%s" % (root, sub, pfx)
 		return base
 
-	def to_out(self, filename, sub=None):
+	def to_out(self, filename, sub=''):
 		base = self.base(filename, sub)
 		return os.path.join(self.outputdir, base)
 
-	def to_in(self, filename, sub=None):
+	def _fmt(self, dirname, filename, pattern, sub=''):
+		'''
+		>>> l = Locations(None, None)
+		>>> l._fmt("dir", "file.ext", "{dir}/{file}")
+		'dir/file.ext'
+		'''
+		s = os.path.splitext(filename)
+		args = { 'basename': os.path.basename(s[0]), 'dir': dirname,
+			'sub': sub, 'ext': s[1], 'file': os.path.basename(filename)}
+		return pattern.format(**args)
+
+	def to_in(self, filename, sub=''):
 		base = self.base(filename, sub)
 		return os.path.join(self.inputdir, base)
 
