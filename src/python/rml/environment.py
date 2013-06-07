@@ -60,9 +60,6 @@ class Environment:
 Instance = Environment()
 
 # helper methods for 
-def format_tc(seconds):
-	'''Format as timecode in the format mkvmerge --split expects'''
-	return time.strftime("%H:%M:%S", time.gmtime(seconds))
 
 def format_datetime(seconds):
 	'''Full date and time'''
@@ -70,6 +67,13 @@ def format_datetime(seconds):
 
 class Locations:
 	def __init__(self, inputdir, outputdir, outpattern="{dir}/{basename}{sub}{ext}"):
+		'''Creates Locations using the given input and output destinations.
+		For custom outpatterns, the variables 'dir', 'file', 'basename',
+		'sub', and 'ext' are available. Other variables may be used by passing
+		corresponding keyword-arguments to to_out and mkoutdir.
+		If 'sub' is not given, the default outpattern will include an output
+		count in its place.
+		'''
 		self.inputdir = inputdir
 		self.outputdir = outputdir
 		self.outpattern = outpattern
@@ -135,9 +139,10 @@ class Locations:
 				outputs.append(filename)
 		return outputs
 
-	def mkoutdir(self):
-		if not os.path.exists(self.outputdir):
-			os.mkdir(self.outputdir)
+	def mkoutdir(self, **kwargs):
+		dirname = self._fmt(self.outputdir, '', self.outpattern, **kwargs)
+		if not os.path.exists(dirname):
+			os.mkdir(dirname)
 
 
 if __name__ == '__main__':
