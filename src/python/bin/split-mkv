@@ -39,6 +39,8 @@ class VideoTimes:
 	def add_split(self, id, start_ts_utc, end_ts_utc):
 		start = int(start_ts_utc) - self.start_time
 		end = int(end_ts_utc) - self.start_time
+		if start < 0:
+			start = 0
 		if end < start:
 			raise "start must be before end"
 		self.split_times[id] = (start, end)
