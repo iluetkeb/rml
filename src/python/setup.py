@@ -8,7 +8,11 @@ setup(
 		"bin/normalize.py", 
 		"bin/event_hist.py",
 		"bin/split-mkv",
-		"bin/split-xml"],
+		"bin/split-xml",
+#		"bin/fix_timestamp.py",
+#		"bin/media_timestamp.py",
+#		"bin/tsv_to_task.py"
+		],
 
 	test_suite="test",
 
