@@ -12,7 +12,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import javax.xml.parsers.ParserConfigurationException;
-import marytts.MaryInterface;
 import nu.xom.Builder;
 import nu.xom.Element;
 import nu.xom.Elements;
@@ -29,7 +28,7 @@ import org.jaxen.JaxenException;
  */
 public class App {
     private static final Logger logger = Logger.getLogger(App.class.getName());
-    static final ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    static final ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(Math.max(Runtime.getRuntime().availableProcessors() - 1, 1));
     //static final ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
     
     private static Element findElementByName(Element elmnt, String name, int maxdepth, int currentDepth) {
@@ -69,15 +68,21 @@ public class App {
                 b = new Builder(filter.createNodeFactory(null,
                 new StreamingTransform() {
 
-                    @Override
                     public Nodes transform(Element elmnt) {
                         Node maryNode = findElementByName(elmnt, "maryxml", Integer.MAX_VALUE, 0);
+                        Node status = findElementByName(elmnt, "STATUS", 4, 0);
                         Node timestampNode = findElementByName(elmnt, "millis", 1, 0);
-
-
-                        if(maryNode != null && timestampNode != null) {
-                            ConvertTask task = new ConvertTask(maryNode, timestampNode, destinationFolder);
+                        
+                        if(maryNode != null && timestampNode != null && status != null && ( (Element) status).getAttributeValue("value").equals("accepted")) {
+                            ConvertTask task = new ConvertTask(maryNode, timestampNode, new File(destinationFolder, "waves"));
                             threadPool.submit(task);
+                            while(threadPool.getTaskCount() - threadPool.getCompletedTaskCount() > 10000) {
+                                try {
+                                    Thread.sleep(50);
+                                } catch (InterruptedException ex) {
+                                    Logger.getLogger(App.class.getName()).log(Level.SEVERE, null, ex);
+                                }
+                            }
                             //task.run();
                         } else {
                             logger.log(Level.FINE, "Could not find mary or timestamp tag in element.");

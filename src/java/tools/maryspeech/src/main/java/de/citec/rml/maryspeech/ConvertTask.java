@@ -5,12 +5,13 @@
 package de.citec.rml.maryspeech;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.sound.sampled.AudioFileFormat;
@@ -20,7 +21,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import marytts.MaryInterface;
 import marytts.client.RemoteMaryInterface;
-import marytts.exceptions.SynthesisException;
+import nu.xom.Attribute;
 import nu.xom.Document;
 import nu.xom.Element;
 import nu.xom.Node;
@@ -47,7 +48,7 @@ public class ConvertTask implements Runnable {
         this.timestampNode = timestampNode;
         this.destinationFolder = destinationFolder;
         
-        this.formatDate = new SimpleDateFormat("YYYY-MM-DD-HH-mm-ss-SSS");
+        this.formatDate = new SimpleDateFormat("YYYY-MM-dd-HH-mm-ss-SSS");
     }
     
     public final MaryInterface getMaryInterface() throws IOException {
@@ -62,6 +63,7 @@ public class ConvertTask implements Runnable {
             // TODO: configure as in the scenario
             //mi.setVoice("...");
         
+            mi.setLocale(Locale.GERMAN);
             mi.setVoice("bits1-hsmm");
             mi.setInputType("RAWMARYXML");
             
@@ -79,6 +81,8 @@ public class ConvertTask implements Runnable {
     }
 
     public void run() {
+        Document maryxml = null;
+        
         try {
             maryInterface = getMaryInterface();
             //logger.log(Level.INFO, "Processing mary node.");
@@ -94,11 +98,33 @@ public class ConvertTask implements Runnable {
             }
             Date date = new Date(timestamp);
             String filename = formatDate.format(date) + "-" + timestamp + ".wav";
+            String filenameXML = formatDate.format(date) + "-" + timestamp + ".xml";
             File destinationFile = new File(destinationFolder, filename);
+            File destinationFileXML = new File(destinationFolder, filenameXML);
+            
+            ((Element) maryNode).addAttribute(new Attribute("xml:lang", "http://www.w3.org/XML/1998/namespace", "de"));
             
             // process elements
-            Document maryxml = new Document((Element) maryNode.copy());
+            maryxml = new Document((Element) maryNode.copy());
+            
             org.w3c.dom.Document doc = DOMConverter.convert(maryxml, impl);
+            
+            FileWriter writer = null;
+            try {
+                writer = new FileWriter(destinationFileXML);
+                
+                writer.write(maryxml.toXML());
+            } catch (Exception ex) {
+                logger.log(Level.SEVERE, null, ex);
+            } finally {
+                if(writer != null) {
+                    try {
+                        writer.close();
+                    } catch (IOException ex) {
+                        logger.log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
             
             logger.log(Level.FINE, "Generating audio file.");
             AudioInputStream in = maryInterface.generateAudio(doc);
@@ -106,11 +132,9 @@ public class ConvertTask implements Runnable {
             OutputStream out = null;
             try {
                 out = new FileOutputStream(destinationFile);
-
+                
                 AudioSystem.write(in, AudioFileFormat.Type.WAVE, out);
-            } catch (FileNotFoundException ex) {
-                logger.log(Level.SEVERE, null, ex);
-            } catch (IOException ex) {
+            } catch (Exception ex) {
                 logger.log(Level.SEVERE, null, ex);
             } finally {
                 if(out != null) {
@@ -121,10 +145,12 @@ public class ConvertTask implements Runnable {
                     }
                 }
             }
-        } catch (SynthesisException ex) {
+        } catch (Exception ex) {
             logger.log(Level.SEVERE, null, ex);
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE, null, ex);
+            
+            if(maryxml != null) {
+                System.out.println(maryxml.toXML());
+            }
         }
     }
 }
